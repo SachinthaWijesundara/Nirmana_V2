@@ -2,7 +2,7 @@
 import os;
 import re;
 import from byllm.lib { Model, MockLLM }
-import from twin { House, Element, Update, Activity, Has, reported_in }
+import from twin { House, Element, Update, Activity, Has, reported_in, now_iso }
 
 obj ParsedUpdate {
     has element_name: str;
@@ -119,7 +119,7 @@ def commit_update(house: House, message: str, parsed: ParsedUpdate) -> dict {
     if not apply_update(el, parsed) {
         return {"ok": False, "reason": "invalid percent", "element": el.name};
     }
-    upd = Update(raw_text=message, summary=f"{el.name}: {el.percent_complete}% complete");
+    upd = Update(raw_text=message, summary=f"{el.name}: {el.percent_complete}% complete", element_name=el.name, material=parsed.material.lower(), cost=parsed.cost_spent, at=now_iso());
     upd +>:reported_in():+> el;
     house +>:Has():+> upd;
     house +>:Has():+> Activity(actor="builder", kind="intake", text=upd.summary);

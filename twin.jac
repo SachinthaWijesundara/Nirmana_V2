@@ -110,6 +110,9 @@ node Update {
     has summary: str = "";
     has at: str = "";
     has author: str = "";
+    has element_name: str = "";
+    has material: str = "";
+    has cost: float = 0.0;
 }
 
 """The audit trail. Written once, never edited."""

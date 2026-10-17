@@ -8,9 +8,15 @@ and stored in Jac's graph database (`.jac/data/`, created on first run).
 
 ```bash
 pip install -r requirements.txt
-jac start main.jac --no_client          # API on http://localhost:8000
+jac start main.jac                      # web app + API on http://localhost:8000 (needs Node/npm)
 jac run scripts/seed_demo.jac           # optional: load the demo accounts and projects
 ```
+
+`jac start main.jac --no_client` runs the API alone. The web UI is written in Jac
+(`ui/App.cl.jac`, `ui/ProjectView.cl.jac`): sign up with a role, log in, create projects,
+invite people, enter the plan and payments, send site updates, request payments, verify
+progress, send photo proof, see the forecast and what-if, ask questions, and read the audit
+trail. Each screen shows only what your role on that project may do.
 
 `scripts/seed_demo.jac` reads `seed/demo_data.json` and sends every item through the API as
 the matching user, so demo data goes in exactly like real data. Set `NIRMANA_URL` to seed a
@@ -40,18 +46,25 @@ project. A refused call returns `{"error": "..."}`.
 | `report_progress`, `request_payment` | contractor | progress on an element; Payment Guard decides a payment request |
 | `verify_progress` | architect | verified %; releases held money the proof covers |
 | `run_delay_check`, `get_forecast`, `run_scenario` | members | Delay Detector, Forecaster, what-if |
+| `submit_photo_proof` | contractor, architect | AI checks a site photo; a confident match verifies progress and releases held money |
+| `ask_project` | members | Q&A from the graph, answered in English, Sinhala or Tamil |
 
 Project settings such as the advance limit (Payment Guard) and retention are stored on each
 project when it is created.
 
 ## AI (Groq)
 
-Intake is the agent that uses an LLM. It runs on Groq when `GROQ_API_KEY` is set in the
-environment; the model defaults to `groq/openai/gpt-oss-120b` and can be changed with
-`GEDARA_MODEL`. On JacHammer, add `GROQ_API_KEY` under Settings → Environment. Never put the key
-in code or commit it (`.env` is git-ignored). With no key set, Intake uses a rule-based parser;
+Three agents use an LLM, all on Groq when `GROQ_API_KEY` is set in the environment:
+Intake and Q&A use `groq/openai/gpt-oss-120b` (change with `GEDARA_MODEL`); the photo proof
+check needs a vision model and uses `groq/qwen/qwen3.8-27b` (change with `GEDARA_VISION_MODEL`).
+Q&A only phrases answers from facts walked from the graph; it never invents numbers. On JacHammer, add `GROQ_API_KEY` under Settings → Environment. Never put the key
+in code or commit it (`.env` is git-ignored). With no key set, Intake and Q&A use rule-based fallbacks and photos are stored for the
+architect to review;
 tests and CI use a mock (`GEDARA_LLM=mock`) and need no key. The other agents (Payment Guard,
 Delay Detector, Forecaster, Scenario) are deterministic and never call an LLM.
+
+The local dev server answers one connection at a time; if a script hangs while a browser tab
+is open on the app, close the tab.
 
 ## Demo logins (after running the seed script)
 

@@ -133,7 +133,7 @@ walker forecast {
         result = compute_forecast(here, as_of, WhatIf());
         report result;
         if result["slip_days"] > 14 or result["over_budget"] > 0.0 {
-            note = Activity(actor="forecaster", kind="forecast", text=f"At this pace: done {result['finish_date']}, Rs. {result['over_budget']} over budget", role="system", category="progress", at=now_iso());
+            note = Activity(actor="forecaster", kind="forecast", text=f"At this pace: done {result['finish_date']}, Rs. {(result['over_budget'] as float):,.0f} over budget", role="system", category="progress", at=now_iso());
             here +>:Has():+> note;
             grant(note, level=WritePerm);
         }

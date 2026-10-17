@@ -7,5 +7,14 @@ import from api.projects {
     create_project, invite_member, list_projects, update_project, get_project, get_activity,
     add_element, update_element, record_payment,
     send_builder_message, report_progress, request_payment, verify_progress,
-    run_delay_check, get_forecast, run_scenario
+    run_delay_check, get_forecast, run_scenario, submit_photo_proof, ask_project
+}
+
+cl {
+    import "./ui/styles.css";
+    import from .ui.App { App }
+
+    def:pub app() -> JsxElement {
+        return <App />;
+    }
 }
