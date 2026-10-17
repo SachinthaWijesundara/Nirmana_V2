@@ -1,0 +1,60 @@
+name: CI
+
+# Runs on every pull request and on pushes to main. Everything checked here
+# is Jac: no API key is needed because GEDARA_LLM=mock swaps in MockLLM.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GEDARA_LLM: mock
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Jac
+        run: pip install -r requirements.txt
+
+      - name: Secret guard
+        run: bash .github/scripts/secret_guard.sh
+
+      - name: Jac share (must be >= 80%)
+        run: bash .github/scripts/jac_share.sh
+
+      - name: jac check
+        run: |
+          fail=0
+          for f in $(git ls-files '*.jac'); do
+            echo "::group::jac check $f"
+            jac check "$f" || { echo "::error file=$f::jac check failed"; fail=1; }
+            echo "::endgroup::"
+          done
+          exit $fail
+
+      - name: jac test
+        run: |
+          fail=0
+          for f in $(git ls-files '*.jac'); do
+            grep -qE '^\s*test\b' "$f" || continue
+            echo "::group::jac test $f"
+            jac test "$f" || { echo "::error file=$f::jac test failed"; fail=1; }
+            echo "::endgroup::"
+          done
+          exit $fail
