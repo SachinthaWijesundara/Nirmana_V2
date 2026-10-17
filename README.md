@@ -79,15 +79,16 @@ This is a hackathon prototype (AI Hackathon 2026, Jaseci). The accounts, the web
 
 ## Try it
 
-You'll need **Python 3.12 or newer** and **Node.js** (the website is built with it).
+You'll need **Jac 0.34.23** (Linux, macOS, or WSL on Windows), which brings its own Python, AI library and web client.
 
 ```bash
 # 1. Get the code
 git clone https://github.com/SachinthaWijesundara/Nirmana_V2.git
 cd Nirmana_V2
 
-# 2. Install Jac, the language Nirmana is written in
-pip install -r requirements.txt
+# 2. Install Jac 0.34.23 (Linux or macOS; on Windows use WSL)
+curl -fsSL https://raw.githubusercontent.com/jaseci-labs/jaseci/main/scripts/install.sh | bash
+jac install
 
 # 3. Start the website (the first start installs and builds it, which takes a minute)
 jac start main.jac

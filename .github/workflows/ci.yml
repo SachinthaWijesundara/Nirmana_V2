@@ -17,20 +17,22 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     env:
       GEDARA_LLM: mock
       PYTHONUTF8: "1"
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-
-      - name: Install Jac
-        run: pip install -r requirements.txt
+      - name: Install Jac 0.34.23
+        run: |
+          base=https://github.com/jaseci-labs/jac/releases/download/v0.34.23
+          curl -fsSL -o jac "$base/jac-0.34.23-linux-x86_64"
+          curl -fsSL -o jac.sha256 "$base/jac-0.34.23-linux-x86_64.sha256"
+          echo "$(awk '{print $1}' jac.sha256)  jac" | sha256sum -c -
+          chmod +x jac && sudo mv jac /usr/local/bin/jac && rm jac.sha256
+          jac --version
+          jac install
 
       - name: Secret guard
         run: bash .github/scripts/secret_guard.sh
@@ -43,6 +45,7 @@ jobs:
           fail=0
           for f in $(git ls-files '*.jac'); do
             echo "::group::jac check $f"
+            rm -rf .jac/data .jac/cache
             jac check "$f" || { echo "::error file=$f::jac check failed"; fail=1; }
             echo "::endgroup::"
           done
@@ -55,7 +58,7 @@ jobs:
             grep -qE '^\s*test\b' "$f" || continue
             echo "::group::jac test $f"
             # Each file gets a fresh graph; nodes left by one file's tests must not leak into the next.
-            rm -rf .jac/data
+            rm -rf .jac/data .jac/cache
             jac test "$f" || { echo "::error file=$f::jac test failed"; fail=1; }
             echo "::endgroup::"
           done
