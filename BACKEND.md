@@ -63,3 +63,17 @@ Delay Detector, Forecaster, Scenario) are deterministic and never call an LLM.
 | Client | kamal.jayasuriya@nirmana.demo | Client2@2026 | Jayasuriya Annex |
 
 These are dummy accounts for testing only.
+
+## Deploy on Render (free)
+
+`render.yaml` is a Render Blueprint for this API.
+
+1. Sign up at render.com with GitHub and allow access to this repository.
+2. New → Blueprint → pick this repository; Render reads `render.yaml` (branch `backend-integrated`).
+3. Enter `GROQ_API_KEY` when asked, then Apply. The first build takes a few minutes.
+4. Load the demo data against the live URL:
+   `NIRMANA_URL=https://<your-service>.onrender.com jac run scripts/seed_demo.jac`
+
+Free instances sleep after about 15 minutes idle (the next request takes up to a minute) and
+have no persistent disk, so the graph database resets on each restart or deploy; run the seed
+script again afterwards. A paid instance with a disk keeps the data.

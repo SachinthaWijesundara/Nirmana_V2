@@ -1,0 +1,18 @@
+# Render Blueprint: deploys the Nirmana backend API (this branch) as a free web service.
+# Render reads this file when you create a Blueprint from the repo (see BACKEND.md).
+services:
+  - type: web
+    name: nirmana-backend
+    runtime: python
+    plan: free
+    branch: backend-integrated
+    buildCommand: pip install -r requirements.txt
+    startCommand: jac start main.jac --no_client -p $PORT
+    healthCheckPath: /functions
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: PYTHONUTF8
+        value: "1"
+      - key: GROQ_API_KEY
+        sync: false  # Render asks you for the value; it is never stored in the repo
