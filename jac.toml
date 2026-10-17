@@ -1,0 +1,9 @@
+[project]
+name = "nirmana-p2-agents"
+version = "0.1.0"
+description = "Nirmana P2: Intake, Payment Guard and Delay Detector agents (Jac walkers)"
+entry-point = "agents/intake.jac"
+
+# Set the real model before the first live `by llm` call; tests use MockLLM.
+# [plugins.byllm.model]
+# default_model = "claude-sonnet-4-6"
