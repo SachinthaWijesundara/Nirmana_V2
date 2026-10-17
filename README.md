@@ -43,7 +43,7 @@ Money decisions are made by clear, fixed rules, never by the AI's opinion. The A
 
 ## Current status
 
-This is a hackathon prototype (AI Hackathon 2026, Jaseci). The three helpers above work and are tested. They currently run against a **sample house** (*Nimal's house*: Foundation, Slab, Walls). The full house model, forecasting, "what if" scenarios and the dashboard are still being built by the team. See [`plan.md`](plan.md) and [`PLAN-P2.md`](PLAN-P2.md) for the roadmap.
+This is a hackathon prototype (AI Hackathon 2026, Jaseci). The three helpers above work and are tested. They currently run against a **sample house** (*Nimal's house*: Foundation, Slab, Walls). The house model, forecasting, "what if" scenarios and a dashboard to drive them are in place. See [`plan.md`](plan.md) and [`PLAN-P2.md`](PLAN-P2.md) for the roadmap.
 
 ## Try it
 
@@ -65,6 +65,32 @@ jac test tests/delay_tests.jac
 ```
 
 If everything is working you'll see `Passed successfully.` after each one.
+
+### Open the dashboard
+
+The dashboard is written in Jac too (`jac-client`: `.cl.jac` components that compile to React). You also need **Node.js 18+** or **Bun** for the first build.
+
+```bash
+export GEDARA_LLM=mock              # optional: practice AI, no key needed
+jac start main.jac                  # first run installs the UI packages and builds them
+```
+
+Open http://localhost:8000. A good demo order:
+
+1. **Ask Payment Guard** for Rs. 800,000. It is held, because paid (4.2M) is ahead of verified work (2.6M).
+2. **Send to Intake** with *"slab eka iwarai, cement bag 40k gaththa"*. The slab turns to 100% reported, but it is not verified yet.
+3. Press **Verify** on the slab. Proof raises verified work, and Payment Guard releases the part it now covers (Rs. 420k) and keeps the rest held.
+4. **Run delay check** and a **What if?** scenario, and watch the agent activity feed.
+
+To start again from the sample house, stop the server and delete `.jac/data`.
+Use `jac start main.jac` without `--dev`: in hot-reload mode the agent walkers can't find the house node.
+
+| File | What it is |
+|---|---|
+| `main.jac` | Entry point: serves every agent walker and mounts the UI |
+| `dashboard_api.jac` | Read-only `dashboard_view` walker: the twin as typed objects, with the forecast |
+| `components/*.cl.jac` | Dashboard sections (money, house model, builder message, payment request, forecast, activity) |
+| `components/Dashboard.impl.jac` | What each button does: spawns the agent walkers, then reloads the view |
 
 ### Using a real AI model
 
