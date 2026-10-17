@@ -56,17 +56,28 @@ def seed_house() -> House {
     houses = [root -->][?:House];
     if houses { return houses[0]; }
 
-    house = root ++> House(name="Nimal's house (Kurunegala)", total_budget=8000000.0, start_date="2026-03-02");
-    site = house +>:Has():+> Element(name="Site prep", kind="site", planned_cost=150000.0, planned_start="2026-03-02", planned_end="2026-03-16", percent_complete=100.0, actual_start="2026-03-02", actual_end="2026-03-18", actual_cost=150000.0, material_shares={"cement": 0.0});
-    foundation = house +>:Has():+> Element(name="Foundation", kind="structure", planned_cost=1100000.0, planned_start="2026-03-16", planned_end="2026-04-20", percent_complete=100.0, actual_start="2026-03-18", actual_end="2026-04-28", actual_cost=1180000.0, material_shares={"cement": 0.35});
-    columns = house +>:Has():+> Element(name="Columns", kind="structure", planned_cost=550000.0, planned_start="2026-04-20", planned_end="2026-05-18", percent_complete=100.0, actual_start="2026-04-28", actual_end="2026-06-01", actual_cost=550000.0, material_shares={"cement": 0.30});
-    walls = house +>:Has():+> Element(name="Walls", kind="structure", planned_cost=800000.0, planned_start="2026-05-18", planned_end="2026-06-29", percent_complete=100.0, actual_start="2026-06-01", actual_end="2026-07-20", actual_cost=800000.0, material_shares={"cement": 0.25});
-    slab = house +>:Has():+> Element(name="Slab", kind="structure", planned_cost=1600000.0, planned_start="2026-06-29", planned_end="2026-08-03", percent_complete=0.0, actual_start="2026-07-21", material_shares={"cement": 0.35});
-    roof = house +>:Has():+> Element(name="Roof", kind="structure", planned_cost=1200000.0, planned_start="2026-08-03", planned_end="2026-09-14", percent_complete=0.0, material_shares={"cement": 0.05});
-    plumbing = house +>:Has():+> Element(name="Plumbing", kind="services", planned_cost=450000.0, planned_start="2026-06-29", planned_end="2026-08-10", percent_complete=0.0, material_shares={"cement": 0.05});
-    electrical = house +>:Has():+> Element(name="Electrical", kind="services", planned_cost=500000.0, planned_start="2026-06-29", planned_end="2026-08-10", percent_complete=0.0);
-    plastering = house +>:Has():+> Element(name="Plastering", kind="finishes", planned_cost=650000.0, planned_start="2026-09-14", planned_end="2026-10-19", percent_complete=0.0, material_shares={"cement": 0.40});
-    tiling = house +>:Has():+> Element(name="Tiling", kind="finishes", planned_cost=1000000.0, planned_start="2026-10-19", planned_end="2026-11-30", percent_complete=0.0, material_shares={"cement": 0.20});
+    house: House = House(name="Nimal's house (Kurunegala)", total_budget=8000000.0, start_date="2026-03-02");
+    root ++> house;
+    site: Element = Element(name="Site prep", kind="site", planned_cost=150000.0, planned_start="2026-03-02", planned_end="2026-03-16", percent_complete=100.0, actual_start="2026-03-02", actual_end="2026-03-18", actual_cost=150000.0, material_shares={"cement": 0.0});
+    house +>:Has():+> site;
+    foundation: Element = Element(name="Foundation", kind="structure", planned_cost=1100000.0, planned_start="2026-03-16", planned_end="2026-04-20", percent_complete=100.0, actual_start="2026-03-18", actual_end="2026-04-28", actual_cost=1180000.0, material_shares={"cement": 0.35});
+    house +>:Has():+> foundation;
+    columns: Element = Element(name="Columns", kind="structure", planned_cost=550000.0, planned_start="2026-04-20", planned_end="2026-05-18", percent_complete=100.0, actual_start="2026-04-28", actual_end="2026-06-01", actual_cost=550000.0, material_shares={"cement": 0.30});
+    house +>:Has():+> columns;
+    walls: Element = Element(name="Walls", kind="structure", planned_cost=800000.0, planned_start="2026-05-18", planned_end="2026-06-29", percent_complete=100.0, actual_start="2026-06-01", actual_end="2026-07-20", actual_cost=800000.0, material_shares={"cement": 0.25});
+    house +>:Has():+> walls;
+    slab: Element = Element(name="Slab", kind="structure", planned_cost=1600000.0, planned_start="2026-06-29", planned_end="2026-08-03", percent_complete=0.0, actual_start="2026-07-21", material_shares={"cement": 0.35});
+    house +>:Has():+> slab;
+    roof: Element = Element(name="Roof", kind="structure", planned_cost=1200000.0, planned_start="2026-08-03", planned_end="2026-09-14", percent_complete=0.0, material_shares={"cement": 0.05});
+    house +>:Has():+> roof;
+    plumbing: Element = Element(name="Plumbing", kind="services", planned_cost=450000.0, planned_start="2026-06-29", planned_end="2026-08-10", percent_complete=0.0, material_shares={"cement": 0.05});
+    house +>:Has():+> plumbing;
+    electrical: Element = Element(name="Electrical", kind="services", planned_cost=500000.0, planned_start="2026-06-29", planned_end="2026-08-10", percent_complete=0.0);
+    house +>:Has():+> electrical;
+    plastering: Element = Element(name="Plastering", kind="finishes", planned_cost=650000.0, planned_start="2026-09-14", planned_end="2026-10-19", percent_complete=0.0, material_shares={"cement": 0.40});
+    house +>:Has():+> plastering;
+    tiling: Element = Element(name="Tiling", kind="finishes", planned_cost=1000000.0, planned_start="2026-10-19", planned_end="2026-11-30", percent_complete=0.0, material_shares={"cement": 0.20});
+    house +>:Has():+> tiling;
 
     foundation +>:depends_on():+> site;
     columns +>:depends_on():+> foundation;
@@ -81,15 +92,20 @@ def seed_house() -> House {
     tiling +>:depends_on():+> roof;
     tiling +>:depends_on():+> plastering;
 
-    payment1 = house +>:Has():+> Payment(amount=600000.0, date="2026-03-10");
+    payment1: Payment = Payment(amount=600000.0, date="2026-03-10");
+    house +>:Has():+> payment1;
     payment1 +>:paid_by():+> site;
-    payment2 = house +>:Has():+> Payment(amount=1000000.0, date="2026-04-25");
+    payment2: Payment = Payment(amount=1000000.0, date="2026-04-25");
+    house +>:Has():+> payment2;
     payment2 +>:paid_by():+> foundation;
-    payment3 = house +>:Has():+> Payment(amount=900000.0, date="2026-06-05");
+    payment3: Payment = Payment(amount=900000.0, date="2026-06-05");
+    house +>:Has():+> payment3;
     payment3 +>:paid_by():+> columns;
-    payment4 = house +>:Has():+> Payment(amount=900000.0, date="2026-07-15");
+    payment4: Payment = Payment(amount=900000.0, date="2026-07-15");
+    house +>:Has():+> payment4;
     payment4 +>:paid_by():+> walls;
-    payment5 = house +>:Has():+> Payment(amount=800000.0, date="2026-08-20", note="advance for slab");
+    payment5: Payment = Payment(amount=800000.0, date="2026-08-20", note="advance for slab");
+    house +>:Has():+> payment5;
     payment5 +>:paid_by():+> slab;
     return house;
 }
@@ -112,7 +128,7 @@ def elements(house: House) -> list[Element] {
     return [house ->:Has:->][?:Element];
 }
 
-def money_summary(house: House) -> dict {
+def money_summary(house: House) -> dict[str, float] {
     paid: float = 0.0;
     held: float = 0.0;
     for payment in [house ->:Has:->][?:Payment] {
@@ -146,16 +162,16 @@ walker:pub get_twin {
     can assemble with Root entry {
         houses = [root -->][?:House];
         house = houses[0] if houses else seed_house();
-        element_rows: list[dict] = [];
+        element_rows: list[dict[str, any]] = [];
         for el in elements(house) {
             dependencies = [dep.name for dep in [el ->:depends_on:->][?:Element]];
             element_rows.append({"name": el.name, "kind": el.kind, "planned_cost": el.planned_cost, "actual_cost": el.actual_cost, "percent_complete": el.percent_complete, "planned_start": el.planned_start, "planned_end": el.planned_end, "actual_start": el.actual_start, "actual_end": el.actual_end, "depends_on": dependencies});
         }
-        payment_rows: list[dict] = [];
+        payment_rows: list[dict[str, any]] = [];
         for payment in [house ->:Has:->][?:Payment] {
             payment_rows.append({"amount": payment.amount, "status": payment.status.name, "date": payment.date, "note": payment.note});
         }
-        activity_rows: list[dict] = [];
+        activity_rows: list[dict[str, any]] = [];
         for activity in [house ->:Has:->][?:Activity] {
             activity_rows.append({"actor": activity.actor, "kind": activity.kind, "text": activity.text});
         }
