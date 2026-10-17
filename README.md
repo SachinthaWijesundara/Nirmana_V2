@@ -96,6 +96,14 @@ Use `jac start main.jac` without `--dev`: in hot-reload mode the agent walkers c
 
 By default (without `GEDARA_LLM=mock`) Intake uses Claude to read messages. Set your own API key as an environment variable first. **Never paste a key into a file or commit it**; the project's checks will reject it.
 
+To use another provider, set `GEDARA_MODEL` to any LiteLLM model name. For Groq, pick a model that supports structured outputs:
+
+```bash
+export GROQ_API_KEY=...                        # Windows PowerShell: $env:GROQ_API_KEY = "..."
+export GEDARA_MODEL=groq/openai/gpt-oss-120b   # Windows PowerShell: $env:GEDARA_MODEL = "groq/openai/gpt-oss-120b"
+jac start main.jac
+```
+
 ## How the pieces fit
 
 ```

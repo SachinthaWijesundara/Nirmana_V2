@@ -22,12 +22,13 @@ def mock_update() -> ParsedUpdate {
     return ParsedUpdate(element_name="Slab", percent_complete=100.0, material="cement", cost_spent=40000.0, delay_reason="", language="singlish");
 }
 
-# GEDARA_LLM=mock (tests, CI) swaps in MockLLM; otherwise the model comes from jac.toml / the default below.
+# GEDARA_LLM=mock (tests, CI) swaps in MockLLM. Otherwise GEDARA_MODEL picks the model (any LiteLLM name,
+# e.g. "groq/openai/gpt-oss-120b" with GROQ_API_KEY set); the default is Claude with ANTHROPIC_API_KEY.
 def build_llm() -> any {
     if os.environ.get("GEDARA_LLM", "") == "mock" {
         return MockLLM(model_name="mockllm", config={"outputs": [mock_update() for _ in range(20)]});
     }
-    return Model(model_name="claude-sonnet-4-6");
+    return Model(model_name=os.environ.get("GEDARA_MODEL", "claude-sonnet-4-6"));
 }
 glob llm = build_llm();
 
