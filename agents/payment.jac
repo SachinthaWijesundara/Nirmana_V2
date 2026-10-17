@@ -13,9 +13,9 @@ obj Decision {
         reason: str;
 }
 
-"""Verified built value of one element: planned cost times percent complete."""
-def verified_value(planned_cost: float, percent_complete: float) -> float {
-    return planned_cost * percent_complete / 100.0;
+"""Verified built value of one element: planned cost times verified percent."""
+def verified_value(planned_cost: float, verified_pct: float) -> float {
+    return planned_cost * verified_pct / 100.0;
 }
 
 """Decide a payment request. paid = already paid, verified = verified built value, request = amount asked now."""
@@ -35,7 +35,8 @@ def assess(paid: float, verified: float, request: float) -> Decision {
     return Decision(verdict="hold", release_now=0.0, hold=request, reason="Money already paid is ahead of verified work.");
 }
 
-"""Totals for a house: money paid (PAID or RELEASED) and verified built value."""
+"""Totals for a house: money paid (PAID or RELEASED) and verified built value.
+Uses verified_pct only, never the builder-reported percent_complete."""
 def totals(house: House) -> dict[str, float] {
     paid = 0.0;
     for p in [house ->:Has:->[?:Payment]] {
@@ -45,7 +46,7 @@ def totals(house: House) -> dict[str, float] {
     }
     verified = 0.0;
     for e in [house ->:Has:->[?:Element]] {
-        verified += verified_value(e.planned_cost, e.percent_complete);
+        verified += verified_value(e.planned_cost, e.verified_pct);
     }
     return {"paid": paid, "verified": verified};
 }
@@ -58,7 +59,7 @@ def rs(amount: float) -> str {
     return f"Rs. {int(amount / 1000.0)}k";
 }
 
-walker PaymentGuard {
+walker:pub PaymentGuard {
     has request_amount: float;
     has note: str = "";
 
@@ -82,7 +83,7 @@ walker PaymentGuard {
 }
 
 """Proof arrived: raise the element's verified progress, then release held payments the proof now covers."""
-walker ReleaseOnProof {
+walker:pub ReleaseOnProof {
     has element_name: str;
     has verified_percent: float;
 
@@ -97,8 +98,12 @@ walker ReleaseOnProof {
             return;
         }
         el = matched[0];
-        if self.verified_percent > el.percent_complete {
-            el.percent_complete = self.verified_percent;
+        if self.verified_percent > el.verified_pct {
+            el.verified_pct = self.verified_percent;
+        }
+        # Proven work is at least reported work.
+        if el.verified_pct > el.percent_complete {
+            el.percent_complete = el.verified_pct;
         }
         released = 0.0;
         for p in [here ->:Has:->[?:Payment]] {

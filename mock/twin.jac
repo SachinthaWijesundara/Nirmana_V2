@@ -13,7 +13,8 @@ node Element {
     has kind: str = "";
     has planned_cost: float = 0.0;
     has actual_cost: float = 0.0;
-    has percent_complete: float = 0.0;
+    has percent_complete: float = 0.0;  # what the builder reported (Intake writes this)
+    has verified_pct: float = 0.0;      # what proof showed (only Payment Guard writes this)
     has planned_start: str = "";
     has planned_end: str = "";
     has materials: list[str] = [];
@@ -54,7 +55,7 @@ def seed_mock_house() -> House {
     house = (root ++> House(name="Nimal's house", total_budget=10000000.0))[0];
     slab = (house +>:Has():+> Element(name="Slab", kind="structure", planned_cost=3000000.0))[0];
     walls = (house +>:Has():+> Element(name="Walls", kind="structure", planned_cost=2500000.0))[0];
-    foundation = (house +>:Has():+> Element(name="Foundation", kind="structure", planned_cost=1500000.0, percent_complete=100.0))[0];
+    foundation = (house +>:Has():+> Element(name="Foundation", kind="structure", planned_cost=1500000.0, percent_complete=100.0, verified_pct=100.0))[0];
     slab +>:depends_on():+> foundation;
     walls +>:depends_on():+> slab;
     return house;

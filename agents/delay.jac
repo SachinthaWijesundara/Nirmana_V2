@@ -53,7 +53,7 @@ def cause_chain(el: Element, today: str) -> list[str] {
     return chain;
 }
 
-walker DelayDetector {
+walker:pub DelayDetector {
     has today: str;
 
     can start with Root entry {
