@@ -15,7 +15,7 @@ def iso_day(day_num: int, origin: str) -> str {
     return (date.fromisoformat(origin) + timedelta(days=day_num)).isoformat();
 }
 
-def compute_forecast(house: House, today: str, what_if: WhatIf) -> dict {
+def compute_forecast(house: House, today: str, what_if: WhatIf) -> dict[str, any] {
     items = elements(house);
     pace_total: float = 0.0;
     pace_count: int = 0;
@@ -117,7 +117,11 @@ def compute_forecast(house: House, today: str, what_if: WhatIf) -> dict {
     projected_total = spent + cost_to_complete;
     over_budget = projected_total - house.total_budget;
     slip_days = finish_day - planned_finish_day;
-    return {"finish_date": iso_day(finish_day, house.start_date), "planned_finish_date": iso_day(planned_finish_day, house.start_date), "slip_days": slip_days, "pace": round(pace, 2), "cost_to_complete": round(cost_to_complete, 2), "projected_total": round(projected_total, 2), "over_budget": round(over_budget, 2), "critical_path": critical_path};
+    pace_value: float = pace;
+    cost_value: float = cost_to_complete;
+    total_value: float = projected_total;
+    budget_value: float = over_budget;
+    return {"finish_date": iso_day(finish_day, house.start_date), "planned_finish_date": iso_day(planned_finish_day, house.start_date), "slip_days": slip_days, "pace": pace_value, "cost_to_complete": cost_value, "projected_total": total_value, "over_budget": budget_value, "critical_path": critical_path};
 }
 
 walker:pub forecast {
@@ -138,23 +142,26 @@ walker:pub forecast {
 test "forecast finishes late and identifies critical path" {
     house = seed_house();
     result = compute_forecast(house, "2026-09-18", WhatIf());
-    assert result["finish_date"] > "2026-11-30";
-    assert result["slip_days"] > 0;
-    assert "Slab" in result["critical_path"];
-    assert "Roof" in result["critical_path"];
-    assert "Tiling" in result["critical_path"];
+    assert str(result["finish_date"]) > "2026-11-30";
+    assert int(result["slip_days"]) > 0;
+    path = result["critical_path"] as list[str];
+    assert "Slab" in path;
+    assert "Roof" in path;
+    assert "Tiling" in path;
 }
 
 test "material prices increase projected total" {
     house = seed_house();
     baseline = compute_forecast(house, "2026-09-18", WhatIf());
     increased = compute_forecast(house, "2026-09-18", WhatIf(material_price={"cement": 0.15}));
-    assert increased["projected_total"] > baseline["projected_total"];
+    increased_total = increased["projected_total"] as float;
+    baseline_total = baseline["projected_total"] as float;
+    assert increased_total > baseline_total;
 }
 
 test "delay scenario pushes out finish" {
     house = seed_house();
     baseline = compute_forecast(house, "2026-09-18", WhatIf());
     delayed = compute_forecast(house, "2026-09-18", WhatIf(delay_days=21, delay_element="Slab"));
-    assert delayed["finish_date"] > baseline["finish_date"];
+    assert str(delayed["finish_date"]) > str(baseline["finish_date"]);
 }

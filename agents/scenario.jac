@@ -14,8 +14,12 @@ walker:pub scenario {
         prices: dict[str, float] = {};
         if self.cement_pct > 0.0 { prices["cement"] = self.cement_pct / 100.0; }
         what_if = compute_forecast(house, self.today, WhatIf(material_price=prices, delay_days=self.delay_days, delay_element=self.delay_element));
-        extra_cost = what_if["projected_total"] - base["projected_total"];
-        extra_days = what_if["slip_days"] - base["slip_days"];
+        what_total: float = what_if["projected_total"] as float;
+        base_total: float = base["projected_total"] as float;
+        what_slip: int = what_if["slip_days"] as int;
+        base_slip: int = base["slip_days"] as int;
+        extra_cost: float = what_total - base_total;
+        extra_days: int = what_slip - base_slip;
         change = f"{base['finish_date']} -> {what_if['finish_date']}";
         impact = "";
         if self.cement_pct > 0.0 { impact = f"cement +{self.cement_pct}%"; }
@@ -37,15 +41,18 @@ test "cement scenario increases cost without changing days" {
     seed_house();
     result = root spawn scenario(cement_pct=15.0);
     answer = result.reports[0];
-    assert answer["diff"]["extra_cost"] > 0.0;
-    assert answer["diff"]["extra_days"] == 0;
+    cost_delta = answer["diff"]["extra_cost"] as float;
+    day_delta = answer["diff"]["extra_days"] as int;
+    assert cost_delta > 0.0;
+    assert day_delta == 0;
 }
 
 test "slab delay scenario increases slip" {
     seed_house();
     result = root spawn scenario(delay_days=21, delay_element="Slab");
     answer = result.reports[0];
-    assert answer["diff"]["extra_days"] > 0;
+    day_delta = answer["diff"]["extra_days"] as int;
+    assert day_delta > 0;
 }
 
 test "scenario does not mutate elements or payments" {
