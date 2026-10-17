@@ -1,7 +1,7 @@
 """Intake walker: a messy Singlish/Sinhala/Tamil builder message becomes a structured update on the right Element."""
 import os;
 import from byllm.lib { Model, MockLLM }
-import from mock.twin { House, Element, Update, Activity, Has, reported_in }
+import from twin { House, Element, Update, Activity, Has, reported_in }
 
 obj ParsedUpdate {
     has element_name: str;

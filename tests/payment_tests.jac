@@ -1,4 +1,4 @@
-import from mock.twin { House, Element, Payment, PaymentStatus, Has, Activity }
+import from twin { House, Element, Payment, PaymentStatus, Has, Activity }
 import from agents.payment { assess, verified_value, totals, PaymentGuard, ReleaseOnProof }
 import from agents.intake { Intake }
 

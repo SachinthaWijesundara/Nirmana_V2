@@ -1,7 +1,7 @@
 """Payment Guard: compares money paid with verified built value and acts. It holds suspicious
 payment requests, and releases them (fully or in part) once proof raises the verified value.
 All money rules are plain deterministic Jac. No LLM decides money."""
-import from mock.twin { House, Element, Payment, PaymentStatus, Activity, Has }
+import from twin { House, Element, Payment, PaymentStatus, Activity, Has }
 
 # Advance allowed on top of verified built value (10%) before a request is held.
 glob ADVANCE_TOLERANCE: float = 0.10;

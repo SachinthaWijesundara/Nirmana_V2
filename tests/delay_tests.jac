@@ -1,4 +1,4 @@
-import from mock.twin { House, Element, DelayNotice, Activity, Has, depends_on }
+import from twin { House, Element, DelayNotice, Activity, Has, depends_on }
 import from agents.delay { days_behind, cause_chain, DelayDetector }
 
 def delay_house() -> House {
