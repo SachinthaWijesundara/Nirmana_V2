@@ -76,7 +76,7 @@ def commit_update(house: House, message: str, parsed: ParsedUpdate) -> dict {
     };
 }
 
-walker Intake {
+walker:pub Intake {
     has message: str;
 
     can start with Root entry {

@@ -1,12 +1,13 @@
 import from mock.twin { House, Element, Payment, PaymentStatus, Has, Activity }
 import from agents.payment { assess, verified_value, totals, PaymentGuard, ReleaseOnProof }
+import from agents.intake { Intake }
 
 def demo_house() -> House {
-    # Foundation 1.5M at 100% = 1.5M; Walls 2.5M at 44% = 1.1M; Slab untouched. Verified = 2.6M. Paid = 4.2M.
+    # Foundation 1.5M verified 100% = 1.5M; Walls 2.5M verified 44% = 1.1M; Slab reported 80% but not verified. Verified = 2.6M. Paid = 4.2M.
     house = (root ++> House(name="Nimal house", total_budget=10000000.0))[0];
-    house +>:Has():+> Element(name="Foundation", planned_cost=1500000.0, percent_complete=100.0);
-    house +>:Has():+> Element(name="Walls", planned_cost=2500000.0, percent_complete=44.0);
-    house +>:Has():+> Element(name="Slab", planned_cost=3000000.0, percent_complete=0.0);
+    house +>:Has():+> Element(name="Foundation", planned_cost=1500000.0, percent_complete=100.0, verified_pct=100.0);
+    house +>:Has():+> Element(name="Walls", planned_cost=2500000.0, percent_complete=44.0, verified_pct=44.0);
+    house +>:Has():+> Element(name="Slab", planned_cost=3000000.0, percent_complete=80.0, verified_pct=0.0);
     house +>:Has():+> Payment(amount=4200000.0, status=PaymentStatus.PAID);
     return house;
 }
@@ -74,4 +75,34 @@ test "ReleaseOnProof rejects an unknown element" {
     h = demo_house();
     r = h spawn ReleaseOnProof(element_name="Roof", verified_percent=10.0);
     assert not r.reports[0]["ok"];
+}
+
+test "builder-reported progress does not count as verified" {
+    h = demo_house();
+    slab = [e for e in [h ->:Has:->[?:Element]] if e.name == "Slab"][0];
+    slab.percent_complete = 100.0;
+    assert totals(h)["verified"] == 2600000.0;
+}
+
+test "demo order: Intake marks the slab done, Payment Guard still holds the 800k (mock LLM)" {
+    h = demo_house();
+    r0 = h spawn Intake(message="slab eka iwarai, cement bag 40k gaththa");
+    assert r0.reports[0]["ok"];
+    slab = [e for e in [h ->:Has:->[?:Element]] if e.name == "Slab"][0];
+    assert slab.percent_complete == 100.0;
+    assert slab.verified_pct == 0.0;
+    r1 = h spawn PaymentGuard(request_amount=800000.0, note="slab advance");
+    assert r1.reports[0]["verdict"] == "hold";
+    assert r1.reports[0]["verified"] == 2600000.0;
+    # The slab photo is the proof: verified 5.6M, allowed 6.16M, paid 4.2M -> the full 800k is released.
+    r2 = h spawn ReleaseOnProof(element_name="Slab", verified_percent=100.0);
+    assert r2.reports[0]["released"] == 800000.0;
+    assert slab.verified_pct == 100.0;
+}
+
+test "ReleaseOnProof never lowers verified progress" {
+    h = demo_house();
+    _ = h spawn ReleaseOnProof(element_name="Foundation", verified_percent=50.0);
+    f = [e for e in [h ->:Has:->[?:Element]] if e.name == "Foundation"][0];
+    assert f.verified_pct == 100.0;
 }
