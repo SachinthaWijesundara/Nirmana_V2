@@ -1,7 +1,8 @@
 """PLACEHOLDER twin graph so P2 agents compile and test before P1's real schema lands.
 Field names follow PLAN-P2.md. Swap this import for P1's twin.jac once agreed."""
 
-enum PaymentStatus { PAID, HELD, RELEASED }
+# str-based so a status read back from the persisted graph (stored as its value) still equals the member.
+enum PaymentStatus: str { PAID = "paid", HELD = "held", RELEASED = "released" }
 
 node House {
     has name: str;
