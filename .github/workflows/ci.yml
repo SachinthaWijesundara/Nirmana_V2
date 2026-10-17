@@ -54,6 +54,8 @@ jobs:
           for f in $(git ls-files '*.jac'); do
             grep -qE '^\s*test\b' "$f" || continue
             echo "::group::jac test $f"
+            # Each file gets a fresh graph; nodes left by one file's tests must not leak into the next.
+            rm -rf .jac/data
             jac test "$f" || { echo "::error file=$f::jac test failed"; fail=1; }
             echo "::endgroup::"
           done
