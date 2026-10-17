@@ -4,9 +4,12 @@ import from agents.delay { days_behind, cause_chain, DelayDetector }
 def delay_house() -> House {
     # Slab: 2026-08-01..2026-09-10 (40 days), 25% done. On 2026-08-21 (20 days in) expected 50% -> 10 days behind.
     # Walls: depends on Slab, starts 2026-08-11, ends 2026-09-20 (40 days), 0% done; 10 days in -> expected 25% -> 10 days behind.
-    house = (root ++> House(name="Nimal house"))[0];
-    slab = (house +>:Has():+> Element(name="Slab", planned_start="2026-08-01", planned_end="2026-09-10", percent_complete=25.0))[0];
-    walls = (house +>:Has():+> Element(name="Walls", planned_start="2026-08-11", planned_end="2026-09-20", percent_complete=0.0))[0];
+    house = House(name="Nimal house");
+    root ++> house;
+    slab = Element(name="Slab", planned_start="2026-08-01", planned_end="2026-09-10", percent_complete=25.0);
+    house +>:Has():+> slab;
+    walls = Element(name="Walls", planned_start="2026-08-11", planned_end="2026-09-20", percent_complete=0.0);
+    house +>:Has():+> walls;
     walls +>:depends_on():+> slab;
     return house;
 }

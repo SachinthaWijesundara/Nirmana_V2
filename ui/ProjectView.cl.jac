@@ -189,7 +189,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
         files: any = e.target.files;
         if not files or files.length == 0 { return; }
         reader: any = new(FileReader);  # jac:ignore[W2001,E1053]
-        reader.onload = lambda(ev: any) { photoData = str(ev.target.result); };
+        reader.onload = lambda (ev: any) { photoData = str(ev.target.result); };
         reader.readAsDataURL(files[0]);
     }
 
@@ -296,7 +296,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
 
     if not loaded {
         return <main className="page">
-            <button className="link" onClick={lambda e: MouseEvent { onBack(); }}>{"< All projects"}</button>
+            <button className="link" onClick={lambda (e: MouseEvent) { onBack(); }}>{"< All projects"}</button>
             {notice and <p className="error">{notice}</p>}
             {not notice and <p className="muted">Loading...</p>}
         </main>;
@@ -313,7 +313,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
     tabs = ["overview", "plan", "actions", "photo", "forecast", "ask", "team", "activity"];
 
     return <main className="page">
-        <button className="link" onClick={lambda e: MouseEvent { onBack(); }}>{"< All projects"}</button>
+        <button className="link" onClick={lambda (e: MouseEvent) { onBack(); }}>{"< All projects"}</button>
         <div className="row between">
             <div>
                 <h1>{str(project["name"])}</h1>
@@ -329,7 +329,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
         </div>
         <nav className="tabs">
             {for t in tabs {
-                <button key={t} className={"tab active" if tab == t else "tab"} onClick={lambda e: MouseEvent { showTab(t); }}>{t}</button>
+                <button key={t} className={"tab active" if tab == t else "tab"} onClick={lambda (e: MouseEvent) { showTab(t); }}>{t}</button>
             }}
         </nav>
         {notice and <p className="error">{notice}</p>}
@@ -369,27 +369,27 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
                 {if role == "client" or role == "architect" {
                     <h3>Add a plan element</h3>
                     <div className="grid">
-                        <label>Name<input value={elName} onChange={lambda e: ChangeEvent { elName = e.target.value; }} /></label>
-                        <label>Planned cost (Rs.)<input type="number" value={elCost} onChange={lambda e: ChangeEvent { elCost = e.target.value; }} /></label>
-                        <label>Planned start<input type="date" value={elStart} onChange={lambda e: ChangeEvent { elStart = e.target.value; }} /></label>
-                        <label>Planned end<input type="date" value={elEnd} onChange={lambda e: ChangeEvent { elEnd = e.target.value; }} /></label>
-                        <label>Kind<input value={elKind} placeholder="structure / services / finishes" onChange={lambda e: ChangeEvent { elKind = e.target.value; }} /></label>
-                        <label>Floor<input value={elFloor} onChange={lambda e: ChangeEvent { elFloor = e.target.value; }} /></label>
-                        <label>Must finish first (comma separated)<input value={elPrereq} placeholder="Walls, Plumbing" onChange={lambda e: ChangeEvent { elPrereq = e.target.value; }} /></label>
+                        <label>Name<input value={elName} onChange={lambda (e: ChangeEvent) { elName = e.target.value; }} /></label>
+                        <label>Planned cost (Rs.)<input type="number" value={elCost} onChange={lambda (e: ChangeEvent) { elCost = e.target.value; }} /></label>
+                        <label>Planned start<input type="date" value={elStart} onChange={lambda (e: ChangeEvent) { elStart = e.target.value; }} /></label>
+                        <label>Planned end<input type="date" value={elEnd} onChange={lambda (e: ChangeEvent) { elEnd = e.target.value; }} /></label>
+                        <label>Kind<input value={elKind} placeholder="structure / services / finishes" onChange={lambda (e: ChangeEvent) { elKind = e.target.value; }} /></label>
+                        <label>Floor<input value={elFloor} onChange={lambda (e: ChangeEvent) { elFloor = e.target.value; }} /></label>
+                        <label>Must finish first (comma separated)<input value={elPrereq} placeholder="Walls, Plumbing" onChange={lambda (e: ChangeEvent) { elPrereq = e.target.value; }} /></label>
                     </div>
-                    <button onClick={lambda e: MouseEvent { addElement(); }}>Add element</button>
+                    <button onClick={lambda (e: MouseEvent) { addElement(); }}>Add element</button>
                 } else {
                     <p className="muted">Only the client or the architect can change the plan.</p>
                 }}
                 {if role == "client" {
                     <h3>Record a payment already made</h3>
                     <div className="grid">
-                        <label>Amount (Rs.)<input type="number" value={payAmount} onChange={lambda e: ChangeEvent { payAmount = e.target.value; }} /></label>
-                        <label>Date<input type="date" value={payDate} onChange={lambda e: ChangeEvent { payDate = e.target.value; }} /></label>
-                        <label>Note<input value={payNote} onChange={lambda e: ChangeEvent { payNote = e.target.value; }} /></label>
-                        <label>For element (optional)<input value={payElement} onChange={lambda e: ChangeEvent { payElement = e.target.value; }} /></label>
+                        <label>Amount (Rs.)<input type="number" value={payAmount} onChange={lambda (e: ChangeEvent) { payAmount = e.target.value; }} /></label>
+                        <label>Date<input type="date" value={payDate} onChange={lambda (e: ChangeEvent) { payDate = e.target.value; }} /></label>
+                        <label>Note<input value={payNote} onChange={lambda (e: ChangeEvent) { payNote = e.target.value; }} /></label>
+                        <label>For element (optional)<input value={payElement} onChange={lambda (e: ChangeEvent) { payElement = e.target.value; }} /></label>
                     </div>
-                    <button onClick={lambda e: MouseEvent { recordPayment(); }}>Record payment</button>
+                    <button onClick={lambda (e: MouseEvent) { recordPayment(); }}>Record payment</button>
                 }}
             </div>
         }}
@@ -399,36 +399,36 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
                 {if role == "contractor" {
                     <h3>Send a site update (Intake)</h3>
                     <p className="muted">Write it the way you would on WhatsApp, e.g. "slab eka iwarai, cement 40k gaththa".</p>
-                    <textarea value={msgText} onChange={lambda e: ChangeEvent { msgText = e.target.value; }} />
-                    <button onClick={lambda e: MouseEvent { sendMessage(); }}>Send update</button>
+                    <textarea value={msgText} onChange={lambda (e: ChangeEvent) { msgText = e.target.value; }} />
+                    <button onClick={lambda (e: MouseEvent) { sendMessage(); }}>Send update</button>
                     <h3>Report progress</h3>
                     <div className="grid">
-                        <label>Element<input value={progElement} onChange={lambda e: ChangeEvent { progElement = e.target.value; }} /></label>
-                        <label>Percent done<input type="number" value={progPercent} onChange={lambda e: ChangeEvent { progPercent = e.target.value; }} /></label>
-                        <label>Cost spent now (Rs.)<input type="number" value={progCost} onChange={lambda e: ChangeEvent { progCost = e.target.value; }} /></label>
+                        <label>Element<input value={progElement} onChange={lambda (e: ChangeEvent) { progElement = e.target.value; }} /></label>
+                        <label>Percent done<input type="number" value={progPercent} onChange={lambda (e: ChangeEvent) { progPercent = e.target.value; }} /></label>
+                        <label>Cost spent now (Rs.)<input type="number" value={progCost} onChange={lambda (e: ChangeEvent) { progCost = e.target.value; }} /></label>
                     </div>
-                    <button onClick={lambda e: MouseEvent { reportProgress(); }}>Report</button>
+                    <button onClick={lambda (e: MouseEvent) { reportProgress(); }}>Report</button>
                     <h3>Request a payment (Payment Guard)</h3>
                     <div className="grid">
-                        <label>Amount (Rs.)<input type="number" value={reqAmount} onChange={lambda e: ChangeEvent { reqAmount = e.target.value; }} /></label>
-                        <label>For<input value={reqNote} onChange={lambda e: ChangeEvent { reqNote = e.target.value; }} /></label>
+                        <label>Amount (Rs.)<input type="number" value={reqAmount} onChange={lambda (e: ChangeEvent) { reqAmount = e.target.value; }} /></label>
+                        <label>For<input value={reqNote} onChange={lambda (e: ChangeEvent) { reqNote = e.target.value; }} /></label>
                     </div>
-                    <button onClick={lambda e: MouseEvent { requestPayment(); }}>Request payment</button>
+                    <button onClick={lambda (e: MouseEvent) { requestPayment(); }}>Request payment</button>
                 }}
                 {if role == "architect" {
                     <h3>Verify progress from proof</h3>
                     <p className="muted">Verified work releases held money that it now covers.</p>
                     <div className="grid">
-                        <label>Element<input value={verElement} onChange={lambda e: ChangeEvent { verElement = e.target.value; }} /></label>
-                        <label>Verified percent<input type="number" value={verPercent} onChange={lambda e: ChangeEvent { verPercent = e.target.value; }} /></label>
+                        <label>Element<input value={verElement} onChange={lambda (e: ChangeEvent) { verElement = e.target.value; }} /></label>
+                        <label>Verified percent<input type="number" value={verPercent} onChange={lambda (e: ChangeEvent) { verPercent = e.target.value; }} /></label>
                     </div>
-                    <button onClick={lambda e: MouseEvent { verify(); }}>Verify</button>
+                    <button onClick={lambda (e: MouseEvent) { verify(); }}>Verify</button>
                 }}
                 {if role == "client" {
                     <p className="muted">As the client you watch the twin, approve with your money, and ask questions. Updates come from the contractor; verification from the architect.</p>
                 }}
                 <h3>Delay check</h3>
-                <button onClick={lambda e: MouseEvent { checkDelays(); }}>Run Delay Detector</button>
+                <button onClick={lambda (e: MouseEvent) { checkDelays(); }}>Run Delay Detector</button>
                 {for d in delays {
                     <p key={str(d["element"])} className="notice">{str(d["evidence"])}</p>
                 }}
@@ -444,12 +444,12 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
                 {if role == "contractor" or role == "architect" {
                     <p className="muted">Send a photo of the finished work. The AI checks it shows the element; a confident match counts as proof and releases held money it covers.</p>
                     <div className="grid">
-                        <label>Element<input value={photoElement} onChange={lambda e: ChangeEvent { photoElement = e.target.value; }} /></label>
-                        <label>Note<input value={photoNote} onChange={lambda e: ChangeEvent { photoNote = e.target.value; }} /></label>
+                        <label>Element<input value={photoElement} onChange={lambda (e: ChangeEvent) { photoElement = e.target.value; }} /></label>
+                        <label>Note<input value={photoNote} onChange={lambda (e: ChangeEvent) { photoNote = e.target.value; }} /></label>
                         <label>Photo<input type="file" accept="image/*" onChange={pickPhoto} /></label>
                     </div>
                     if photoData { <img className="preview" src={photoData} /> }
-                    <button disabled={not photoData} onClick={lambda e: MouseEvent { sendPhoto(); }}>Send photo for checking</button>
+                    <button disabled={not photoData} onClick={lambda (e: MouseEvent) { sendPhoto(); }}>Send photo for checking</button>
                 } else {
                     <p className="muted">The contractor or architect sends photo proof; you see the result here and in Activity.</p>
                 }}
@@ -459,7 +459,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
         {if tab == "forecast" {
             <div className="card">
                 <h3>Forecast</h3>
-                <button onClick={lambda e: MouseEvent { loadForecast(); }}>Refresh forecast</button>
+                <button onClick={lambda (e: MouseEvent) { loadForecast(); }}>Refresh forecast</button>
                 {if forecastData and forecastData["finish_date"] {
                     <p className="big">{"Finish " + str(forecastData["finish_date"]) + " (" + str(forecastData["slip_days"]) + " days vs plan " + str(forecastData["planned_finish_date"]) + ")"}</p>
                     <p>{"Cost to complete " + rs(forecastData["cost_to_complete"]) + " · projected total " + rs(forecastData["projected_total"]) + " · over budget " + rs(forecastData["over_budget"])}</p>
@@ -467,11 +467,11 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
                 }}
                 <h3>What if...</h3>
                 <div className="grid">
-                    <label>Cement price change (%)<input type="number" value={scCement} onChange={lambda e: ChangeEvent { scCement = e.target.value; }} /></label>
-                    <label>Delay (days)<input type="number" value={scDays} onChange={lambda e: ChangeEvent { scDays = e.target.value; }} /></label>
-                    <label>Delayed element (blank = all)<input value={scElement} onChange={lambda e: ChangeEvent { scElement = e.target.value; }} /></label>
+                    <label>Cement price change (%)<input type="number" value={scCement} onChange={lambda (e: ChangeEvent) { scCement = e.target.value; }} /></label>
+                    <label>Delay (days)<input type="number" value={scDays} onChange={lambda (e: ChangeEvent) { scDays = e.target.value; }} /></label>
+                    <label>Delayed element (blank = all)<input value={scElement} onChange={lambda (e: ChangeEvent) { scElement = e.target.value; }} /></label>
                 </div>
-                <button onClick={lambda e: MouseEvent { runScenario(); }}>Run scenario</button>
+                <button onClick={lambda (e: MouseEvent) { runScenario(); }}>Run scenario</button>
                 {if scenarioData and scenarioData["summary"] {
                     <p className="ok">{str(scenarioData["summary"])}</p>
                     <p className="muted">The real twin is not changed.</p>
@@ -483,15 +483,15 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
             <div className="card">
                 <h3>Ask about this house</h3>
                 <p className="muted">e.g. "How much have we spent on cement?", "When will it be finished?", "Why is a payment held?"</p>
-                <textarea value={question} onChange={lambda e: ChangeEvent { question = e.target.value; }} />
+                <textarea value={question} onChange={lambda (e: ChangeEvent) { question = e.target.value; }} />
                 <label>Answer in
-                    <select value={askLang} onChange={lambda e: ChangeEvent { askLang = e.target.value; }}>
+                    <select value={askLang} onChange={lambda (e: ChangeEvent) { askLang = e.target.value; }}>
                         <option value="english">English</option>
                         <option value="sinhala">Sinhala</option>
                         <option value="tamil">Tamil</option>
                     </select>
                 </label>
-                <button onClick={lambda e: MouseEvent { askIt(); }}>Ask</button>
+                <button onClick={lambda (e: MouseEvent) { askIt(); }}>Ask</button>
                 {if answer and answer["answer"] {
                     <div className="answer">
                         <p>{str(answer["answer"])}</p>
@@ -512,17 +512,17 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
                 {if role == "client" or role == "architect" {
                     <h3>Invite someone</h3>
                     <div className="grid">
-                        <label>Email<input type="email" value={invEmail} onChange={lambda e: ChangeEvent { invEmail = e.target.value; }} /></label>
-                        <label>Name<input value={invName} onChange={lambda e: ChangeEvent { invName = e.target.value; }} /></label>
+                        <label>Email<input type="email" value={invEmail} onChange={lambda (e: ChangeEvent) { invEmail = e.target.value; }} /></label>
+                        <label>Name<input value={invName} onChange={lambda (e: ChangeEvent) { invName = e.target.value; }} /></label>
                         <label>Role
-                            <select value={invRole} onChange={lambda e: ChangeEvent { invRole = e.target.value; }}>
+                            <select value={invRole} onChange={lambda (e: ChangeEvent) { invRole = e.target.value; }}>
                                 <option value="contractor">Contractor</option>
                                 <option value="architect">Architect</option>
                                 <option value="client">Client</option>
                             </select>
                         </label>
                     </div>
-                    <button onClick={lambda e: MouseEvent { invite(); }}>Invite</button>
+                    <button onClick={lambda (e: MouseEvent) { invite(); }}>Invite</button>
                 }}
             </div>
         }}

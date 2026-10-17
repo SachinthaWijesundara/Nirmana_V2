@@ -2,10 +2,14 @@ import from twin { House, Element, Has, Update, Activity, depends_on }
 import from agents.intake { ParsedUpdate, apply_update, commit_update, parse_update, parse_update_rules, Intake }
 
 def seed_mock_house() -> House {
-    house = (root ++> House(name="Nimal's house", total_budget=10000000.0))[0];
-    slab = (house +>:Has():+> Element(name="Slab", kind="structure", planned_cost=3000000.0))[0];
-    walls = (house +>:Has():+> Element(name="Walls", kind="structure", planned_cost=2500000.0))[0];
-    foundation = (house +>:Has():+> Element(name="Foundation", kind="structure", planned_cost=1500000.0, percent_complete=100.0, verified_pct=100.0))[0];
+    house = House(name="Nimal's house", total_budget=10000000.0);
+    root ++> house;
+    slab = Element(name="Slab", kind="structure", planned_cost=3000000.0);
+    house +>:Has():+> slab;
+    walls = Element(name="Walls", kind="structure", planned_cost=2500000.0);
+    house +>:Has():+> walls;
+    foundation = Element(name="Foundation", kind="structure", planned_cost=1500000.0, percent_complete=100.0, verified_pct=100.0);
+    house +>:Has():+> foundation;
     slab +>:depends_on():+> foundation;
     walls +>:depends_on():+> slab;
     return house;

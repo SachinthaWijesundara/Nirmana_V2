@@ -6,7 +6,7 @@ English, Sinhala or Tamil; it never invents numbers. Without an LLM, answer_rule
 the common questions."""
 import os;
 import json;
-import from byllm.lib { MockLLM }
+import from jaclang.byllm.lib { MockLLM }
 import from agents.intake { build_llm }
 import from agents.forecast { WhatIf, compute_forecast }
 import from twin {
