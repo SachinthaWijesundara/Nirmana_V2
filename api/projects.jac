@@ -18,7 +18,7 @@ import from agents.forecast { forecast }
 import from agents.scenario { scenario }
 import from agents.photo { PhotoCheck, check_photo, vision_available, proven_percent }
 import from agents.qa { ask }
-import from byllm.lib { Image }
+import from jaclang.byllm.lib { Image }
 
 def require(ok: bool, message: str) -> None {
     if not ok { raise ValueError(message); }

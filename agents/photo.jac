@@ -3,7 +3,7 @@ claimed element and how complete that element looks. A confident match counts as
 it raises the element's verified progress (never above what the contractor reported) and
 Payment Guard releases any held money the proof now covers."""
 import os;
-import from byllm.lib { Model, MockLLM, Image }
+import from jaclang.byllm.lib { Model, MockLLM, Image }
 
 obj PhotoCheck {
     has shows_element: bool;

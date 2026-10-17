@@ -29,6 +29,7 @@ jobs:
           GEDARA_LLM: mock
           PYTHONUTF8: "1"
         run: |
+          set +e
           mkdir -p "$RUNNER_TEMP/out"; out="$RUNNER_TEMP/out"
           jac --version > "$out/version.txt" 2>&1 || true
           (jac install > "$out/install.txt" 2>&1; echo "exit=$?" >> "$out/install.txt") || true
@@ -36,12 +37,12 @@ jobs:
             jac guide "$g" > "$out/guide_$g.txt" 2>&1 || true
           done
           for f in $(git ls-files '*.jac'); do
-            n=$(echo "$f" | tr '/' '_'); rm -rf .jac
+            n=$(echo "$f" | tr '/' '_'); rm -rf .jac/data .jac/cache
             jac check "$f" > "$out/check_$n.txt" 2>&1; echo "$f exit=$?" >> "$out/check_summary.txt"
           done
           for f in $(git ls-files '*.jac'); do
             grep -qE '^\s*test\b' "$f" || continue
-            n=$(echo "$f" | tr '/' '_'); rm -rf .jac
+            n=$(echo "$f" | tr '/' '_'); rm -rf .jac/data .jac/cache
             timeout 300 jac test "$f" > "$out/test_$n.txt" 2>&1; echo "$f exit=$?" >> "$out/test_summary.txt"
           done
 
