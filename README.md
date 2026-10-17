@@ -68,7 +68,7 @@ If everything is working you'll see `Passed successfully.` after each one.
 
 ### Open the dashboard
 
-The dashboard is written in Jac too (`jac-client`: `.cl.jac` components that compile to React). You also need **Node.js 18+** or **Bun** for the first build.
+The dashboard is written in Jac too (`jac-client`: `.cl.jac` components that compile to React). The first run builds the UI with **Bun**; `jac start` installs it automatically if it is missing (or install it yourself from https://bun.sh).
 
 ```bash
 export GEDARA_LLM=mock              # optional: practice AI, no key needed
