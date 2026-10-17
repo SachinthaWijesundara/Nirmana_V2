@@ -7,3 +7,10 @@ entry-point = "agents/intake.jac"
 # Set the real model before the first live `by llm` call; tests use MockLLM.
 # [plugins.byllm.model]
 # default_model = "claude-sonnet-4-6"
+
+[jacpack]
+name = 'Nirmana_V2'
+description = 'Jac IDE snapshot for Nirmana_V2'
+
+[jachammer]
+project_id = "prj_c3deb3c330f4431f9022c835c3a2315a"
