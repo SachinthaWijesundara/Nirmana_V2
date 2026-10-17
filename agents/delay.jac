@@ -1,7 +1,7 @@
 """Delay Detector: finds elements behind schedule, walks depends_on to the real cause, and writes a
 dated DelayNotice with evidence. This is the builder-protection side: a neutral, timestamped record."""
 import from datetime { date }
-import from mock.twin { House, Element, DelayNotice, Activity, Has, depends_on }
+import from twin { House, Element, DelayNotice, Activity, Has, depends_on }
 
 # An element must be at least this many days behind plan to count as a delay.
 glob DELAY_THRESHOLD_DAYS: int = 3;
