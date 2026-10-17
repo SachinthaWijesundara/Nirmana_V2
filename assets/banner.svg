@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-label="Nirmana: know what your money has built">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f2a43"/>
+      <stop offset="1" stop-color="#1d5c63"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="300" fill="url(#bg)"/>
+  <!-- house under construction -->
+  <g transform="translate(880,60)" fill="none" stroke="#f4b942" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M0 110 L110 20 L220 110"/>
+    <path d="M25 95 V190 H195 V95"/>
+    <path d="M90 190 V135 H130 V190"/>
+    <path d="M200 20 V70" stroke-dasharray="2 12"/>
+  </g>
+  <g fill="#f4b942" opacity="0.35">
+    <rect x="860" y="230" width="280" height="6" rx="3"/>
+  </g>
+  <text x="70" y="140" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#ffffff" letter-spacing="2">Nirmana</text>
+  <text x="74" y="190" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="30" fill="#f4b942">Know what your money has actually built.</text>
+  <text x="74" y="236" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" fill="#cfe3e6">A live digital twin of your home build, for owners abroad and the builders they trust.</text>
+</svg>
