@@ -1,5 +1,6 @@
 """Intake walker: a messy Singlish/Sinhala/Tamil builder message becomes a structured update on the right Element."""
 import os;
+import re;
 import from byllm.lib { Model, MockLLM }
 import from twin { House, Element, Update, Activity, Has, reported_in }
 
@@ -22,14 +23,60 @@ def mock_update() -> ParsedUpdate {
     return ParsedUpdate(element_name="Slab", percent_complete=100.0, material="cement", cost_spent=40000.0, delay_reason="", language="singlish");
 }
 
-# GEDARA_LLM=mock (tests, CI) swaps in MockLLM; otherwise the model comes from jac.toml / the default below.
+# GEDARA_LLM=mock (tests, CI) swaps in MockLLM. Otherwise the model name comes from the
+# GEDARA_MODEL environment variable. With no model configured, Intake uses the rule parser below.
 def build_llm() -> any {
     if os.environ.get("GEDARA_LLM", "") == "mock" {
         return MockLLM(model_name="mockllm", config={"outputs": [mock_update() for _ in range(20)]});
     }
-    return Model(model_name="claude-sonnet-4-6");
+    model_name = os.environ.get("GEDARA_MODEL", "");
+    if model_name == "" { return None; }
+    return Model(model_name=model_name);
 }
 glob llm = build_llm();
+
+def llm_available() -> bool {
+    return llm is not None;
+}
+
+"""Rule-based fallback parser, used when no LLM is configured. Handles the common
+Singlish/English shapes: an element name, "iwarai"/"done" or "60%", and "cement 40k"."""
+def parse_update_rules(message: str, element_names: list[str]) -> ParsedUpdate {
+    text = message.lower();
+    element = "";
+    for name in element_names {
+        if name.lower() in text { element = name; break; }
+    }
+    pct = 0.0;
+    pct_match = re.search(r"(\d{1,3})\s*%", text);
+    if pct_match { pct = float(pct_match.group(1)); }
+    for word in ["iwarai", "ivarai", "iwara", "mudinchu", "finished", "completed", "complete", "done"] {
+        if word in text { pct = 100.0; }
+    }
+    cost = 0.0;
+    material = "";
+    cost_match = re.search(r"([a-z]+)?[\s\w]*?(?:rs\.?\s*)?(\d+(?:\.\d+)?)\s*(k|m|lakh|laksha)\b", text);
+    if cost_match {
+        amount = float(cost_match.group(2));
+        unit = cost_match.group(3);
+        if unit == "k" { amount = amount * 1000.0; }
+        elif unit == "m" { amount = amount * 1000000.0; }
+        else { amount = amount * 100000.0; }
+        cost = amount;
+        before = text[0:cost_match.start(2)].replace("rs", " ").split();
+        candidates = [w for w in before if w.isalpha() and w not in [element.lower(), "bag", "bags", "eka", "ekak", "walata"]];
+        if len(candidates) > 0 { material = candidates[len(candidates) - 1]; }
+    }
+    delay = "";
+    for word in ["rain", "wahina", "wassa", "shortage", "no workers", "strike"] {
+        if word in text { delay = word; }
+    }
+    language = "english";
+    for word in ["eka", "iwarai", "gaththa", "walata", "wahina", "ona"] {
+        if re.search(r"\b" + word + r"\b", text) { language = "singlish"; }
+    }
+    return ParsedUpdate(element_name=element, percent_complete=pct, material=material, cost_spent=cost, delay_reason=delay, language=language);
+}
 
 def parse_update(message: str, element_names: list[str]) -> ParsedUpdate by llm(temperature=0.0);
 sem parse_update = "Turn a construction site message from a Sri Lankan builder (English, Sinhala, Tamil or Singlish) into a structured update.";
@@ -76,7 +123,7 @@ def commit_update(house: House, message: str, parsed: ParsedUpdate) -> dict {
     };
 }
 
-walker:pub Intake {
+walker Intake {
     has message: str;
 
     can start with Root entry {
@@ -85,7 +132,7 @@ walker:pub Intake {
 
     can run with House entry {
         names = [e.name for e in [here ->:Has:->[?:Element]]];
-        parsed = parse_update(self.message, names);
+        parsed = parse_update(self.message, names) if llm_available() else parse_update_rules(self.message, names);
         report commit_update(here, self.message, parsed);
     }
 }

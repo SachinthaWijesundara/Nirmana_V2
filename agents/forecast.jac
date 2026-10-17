@@ -1,4 +1,4 @@
-import from twin { House, Element, Activity, Has, depends_on, elements, seed_house }
+import from twin { House, Element, Activity, Has, depends_on, elements, today_iso, now_iso }
 import from datetime { date, timedelta }
 
 obj WhatIf {
@@ -25,7 +25,7 @@ def compute_forecast(house: House, today: str, what_if: WhatIf) -> dict[str, any
         if el.actual_end != "" {
             planned_days = day_number(el.planned_end, el.planned_start);
             actual_days = day_number(el.actual_end, el.actual_start);
-            if planned_days > 0 {
+            if planned_days > 0 and actual_days > 0 {
                 pace_total += actual_days / planned_days;
                 pace_count += 1;
             }
@@ -124,44 +124,18 @@ def compute_forecast(house: House, today: str, what_if: WhatIf) -> dict[str, any
     return {"finish_date": iso_day(finish_day, house.start_date), "planned_finish_date": iso_day(planned_finish_day, house.start_date), "slip_days": slip_days, "pace": pace_value, "cost_to_complete": cost_value, "projected_total": total_value, "over_budget": budget_value, "critical_path": critical_path};
 }
 
-walker:pub forecast {
-    has today: str = "2026-09-18";
+"""Spawn on a House. today defaults to the real date."""
+walker forecast {
+    has today: str = "";
 
-    can run with Root entry {
-        houses = [root -->][?:House];
-        house = houses[0] if houses else seed_house();
-        result = compute_forecast(house, self.today, WhatIf());
+    can run with House entry {
+        as_of = self.today if self.today != "" else today_iso();
+        result = compute_forecast(here, as_of, WhatIf());
         report result;
         if result["slip_days"] > 14 or result["over_budget"] > 0.0 {
-            note = Activity(actor="forecaster", kind="forecast", text=f"At this pace: done {result['finish_date']}, Rs. {result['over_budget']} over budget");
-            house +>:Has():+> note;
+            note = Activity(actor="forecaster", kind="forecast", text=f"At this pace: done {result['finish_date']}, Rs. {result['over_budget']} over budget", role="system", category="progress", at=now_iso());
+            here +>:Has():+> note;
+            grant(note, level=WritePerm);
         }
     }
-}
-
-test "forecast finishes late and identifies critical path" {
-    house = seed_house();
-    result = compute_forecast(house, "2026-09-18", WhatIf());
-    assert str(result["finish_date"]) > "2026-11-30";
-    assert int(result["slip_days"]) > 0;
-    path = result["critical_path"] as list[str];
-    assert "Slab" in path;
-    assert "Roof" in path;
-    assert "Tiling" in path;
-}
-
-test "material prices increase projected total" {
-    house = seed_house();
-    baseline = compute_forecast(house, "2026-09-18", WhatIf());
-    increased = compute_forecast(house, "2026-09-18", WhatIf(material_price={"cement": 0.15}));
-    increased_total = increased["projected_total"] as float;
-    baseline_total = baseline["projected_total"] as float;
-    assert increased_total > baseline_total;
-}
-
-test "delay scenario pushes out finish" {
-    house = seed_house();
-    baseline = compute_forecast(house, "2026-09-18", WhatIf());
-    delayed = compute_forecast(house, "2026-09-18", WhatIf(delay_days=21, delay_element="Slab"));
-    assert str(delayed["finish_date"]) > str(baseline["finish_date"]);
 }

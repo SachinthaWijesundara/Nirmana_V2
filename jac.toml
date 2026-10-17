@@ -1,8 +1,8 @@
 [project]
-name = "nirmana-p2-agents"
+name = "nirmana-backend"
 version = "0.1.0"
-description = "Nirmana P2: Intake, Payment Guard and Delay Detector agents (Jac walkers)"
-entry-point = "agents/intake.jac"
+description = "Nirmana backend: accounts, projects and the P1/P2 twin agents"
+entry-point = "main.jac"
 
 # Set the real model before the first live `by llm` call; tests use MockLLM.
 # [plugins.byllm.model]

@@ -1,5 +1,5 @@
 import from twin { House, Element, Has, Update, Activity, depends_on }
-import from agents.intake { ParsedUpdate, apply_update, commit_update, parse_update, Intake }
+import from agents.intake { ParsedUpdate, apply_update, commit_update, parse_update, parse_update_rules, Intake }
 
 def seed_mock_house() -> House {
     house = (root ++> House(name="Nimal's house", total_budget=10000000.0))[0];
@@ -55,4 +55,17 @@ test "Intake walker end to end (mock LLM): message to updated Slab" {
     res = house spawn Intake(message="slab eka iwarai, cement 40k gaththa");
     assert res.reports[0]["ok"];
     assert res.reports[0]["percent_complete"] == 100.0;
+}
+
+test "rule parser handles Singlish without an LLM" {
+    p = parse_update_rules("slab eka iwarai, cement 40k gaththa", ["Slab", "Walls"]);
+    assert p.element_name == "Slab";
+    assert p.percent_complete == 100.0;
+    assert p.cost_spent == 40000.0;
+    assert p.material == "cement";
+    assert p.language == "singlish";
+    q = parse_update_rules("Walls at 60%, rain delay today", ["Slab", "Walls"]);
+    assert q.element_name == "Walls";
+    assert q.percent_complete == 60.0;
+    assert q.delay_reason == "rain";
 }

@@ -1,0 +1,506 @@
+{
+  "_about": "Dummy demo data. scripts/seed_demo.jac sends every item through the public API, so it ends up in the graph database exactly as if people had typed it in the app. Nothing here is read by the backend code itself.",
+  "users": [
+    {
+      "email": "nimali.perera@nirmana.demo",
+      "password": "Client@2026",
+      "name": "Nimali Perera",
+      "role": "client",
+      "phone": "+974 5500 1122"
+    },
+    {
+      "email": "ruwan.silva@nirmana.demo",
+      "password": "Contractor@2026",
+      "name": "Ruwan Silva",
+      "role": "contractor",
+      "phone": "+94 77 123 4567"
+    },
+    {
+      "email": "anushka.fernando@nirmana.demo",
+      "password": "Architect@2026",
+      "name": "Anushka Fernando",
+      "role": "architect",
+      "phone": "+94 71 765 4321"
+    },
+    {
+      "email": "kamal.jayasuriya@nirmana.demo",
+      "password": "Client2@2026",
+      "name": "Kamal Jayasuriya",
+      "role": "client",
+      "phone": "+94 76 222 3344"
+    }
+  ],
+  "steps": [
+    {
+      "as": "nimali.perera@nirmana.demo",
+      "call": "create_project",
+      "save_as": "perera",
+      "args": {
+        "name": "Perera House",
+        "location": "Kandy",
+        "district": "Kandy",
+        "building_type": "Two-storey house",
+        "floor_area_sqft": 2150,
+        "contract_sum": 8000000,
+        "start_date": "2026-03-02",
+        "handover_date": "2027-03-15",
+        "my_role": "client",
+        "advance_limit_pct": 10,
+        "retention_pct": 5
+      }
+    },
+    {
+      "as": "nimali.perera@nirmana.demo",
+      "call": "invite_member",
+      "args": {
+        "project_id": "$perera",
+        "email": "ruwan.silva@nirmana.demo",
+        "role": "contractor",
+        "name": "Ruwan Silva"
+      }
+    },
+    {
+      "as": "nimali.perera@nirmana.demo",
+      "call": "invite_member",
+      "args": {
+        "project_id": "$perera",
+        "email": "anushka.fernando@nirmana.demo",
+        "role": "architect",
+        "name": "Anushka Fernando"
+      }
+    },
+    {
+      "as": "anushka.fernando@nirmana.demo",
+      "call": "add_element",
+      "args": {
+        "project_id": "$perera",
+        "name": "Site prep",
+        "kind": "site",
+        "floor": "Ground floor",
+        "planned_cost": 150000,
+        "planned_start": "2026-03-02",
+        "planned_end": "2026-03-16"
+      }
+    },
+    {
+      "as": "anushka.fernando@nirmana.demo",
+      "call": "add_element",
+      "args": {
+        "project_id": "$perera",
+        "name": "Foundation",
+        "kind": "structure",
+        "floor": "Ground floor",
+        "planned_cost": 1100000,
+        "planned_start": "2026-03-16",
+        "planned_end": "2026-04-20",
+        "prerequisites": [
+          "Site prep"
+        ],
+        "material_shares": {
+          "cement": 0.35
+        }
+      }
+    },
+    {
+      "as": "anushka.fernando@nirmana.demo",
+      "call": "add_element",
+      "args": {
+        "project_id": "$perera",
+        "name": "Columns",
+        "kind": "structure",
+        "floor": "Ground floor",
+        "planned_cost": 550000,
+        "planned_start": "2026-04-20",
+        "planned_end": "2026-05-18",
+        "prerequisites": [
+          "Foundation"
+        ],
+        "material_shares": {
+          "cement": 0.3
+        }
+      }
+    },
+    {
+      "as": "anushka.fernando@nirmana.demo",
+      "call": "add_element",
+      "args": {
+        "project_id": "$perera",
+        "name": "Walls",
+        "kind": "structure",
+        "floor": "Ground floor",
+        "planned_cost": 800000,
+        "planned_start": "2026-05-18",
+        "planned_end": "2026-06-29",
+        "prerequisites": [
+          "Columns"
+        ],
+        "material_shares": {
+          "cement": 0.25
+        }
+      }
+    },
+    {
+      "as": "anushka.fernando@nirmana.demo",
+      "call": "add_element",
+      "args": {
+        "project_id": "$perera",
+        "name": "Slab",
+        "kind": "structure",
+        "floor": "First floor",
+        "planned_cost": 1600000,
+        "planned_start": "2026-06-29",
+        "planned_end": "2026-08-03",
+        "prerequisites": [
+          "Walls"
+        ],
+        "material_shares": {
+          "cement": 0.35
+        }
+      }
+    },
+    {
+      "as": "anushka.fernando@nirmana.demo",
+      "call": "add_element",
+      "args": {
+        "project_id": "$perera",
+        "name": "Roof",
+        "kind": "structure",
+        "floor": "Roof level",
+        "planned_cost": 1200000,
+        "planned_start": "2026-08-03",
+        "planned_end": "2026-09-14",
+        "prerequisites": [
+          "Slab"
+        ],
+        "material_shares": {
+          "cement": 0.05
+        }
+      }
+    },
+    {
+      "as": "anushka.fernando@nirmana.demo",
+      "call": "add_element",
+      "args": {
+        "project_id": "$perera",
+        "name": "Plumbing",
+        "kind": "services",
+        "floor": "Ground floor",
+        "planned_cost": 450000,
+        "planned_start": "2026-06-29",
+        "planned_end": "2026-08-10",
+        "prerequisites": [
+          "Walls"
+        ],
+        "material_shares": {
+          "cement": 0.05
+        }
+      }
+    },
+    {
+      "as": "anushka.fernando@nirmana.demo",
+      "call": "add_element",
+      "args": {
+        "project_id": "$perera",
+        "name": "Electrical",
+        "kind": "services",
+        "floor": "Ground floor",
+        "planned_cost": 500000,
+        "planned_start": "2026-06-29",
+        "planned_end": "2026-08-10",
+        "prerequisites": [
+          "Walls"
+        ]
+      }
+    },
+    {
+      "as": "anushka.fernando@nirmana.demo",
+      "call": "add_element",
+      "args": {
+        "project_id": "$perera",
+        "name": "Plastering",
+        "kind": "finishes",
+        "floor": "First floor",
+        "planned_cost": 650000,
+        "planned_start": "2026-09-14",
+        "planned_end": "2026-10-19",
+        "prerequisites": [
+          "Slab",
+          "Plumbing",
+          "Electrical"
+        ],
+        "material_shares": {
+          "cement": 0.4
+        }
+      }
+    },
+    {
+      "as": "anushka.fernando@nirmana.demo",
+      "call": "add_element",
+      "args": {
+        "project_id": "$perera",
+        "name": "Tiling",
+        "kind": "finishes",
+        "floor": "First floor",
+        "planned_cost": 1000000,
+        "planned_start": "2026-10-19",
+        "planned_end": "2026-11-30",
+        "prerequisites": [
+          "Roof",
+          "Plastering"
+        ],
+        "material_shares": {
+          "cement": 0.2
+        }
+      }
+    },
+    {
+      "as": "nimali.perera@nirmana.demo",
+      "call": "record_payment",
+      "args": {
+        "project_id": "$perera",
+        "amount": 600000,
+        "date": "2026-03-10",
+        "note": "Mobilisation advance",
+        "element_name": "Site prep"
+      }
+    },
+    {
+      "as": "nimali.perera@nirmana.demo",
+      "call": "record_payment",
+      "args": {
+        "project_id": "$perera",
+        "amount": 1000000,
+        "date": "2026-04-25",
+        "note": "Foundation stage",
+        "element_name": "Foundation"
+      }
+    },
+    {
+      "as": "nimali.perera@nirmana.demo",
+      "call": "record_payment",
+      "args": {
+        "project_id": "$perera",
+        "amount": 900000,
+        "date": "2026-06-05",
+        "note": "Columns stage",
+        "element_name": "Columns"
+      }
+    },
+    {
+      "as": "nimali.perera@nirmana.demo",
+      "call": "record_payment",
+      "args": {
+        "project_id": "$perera",
+        "amount": 900000,
+        "date": "2026-07-15",
+        "note": "Walls stage",
+        "element_name": "Walls"
+      }
+    },
+    {
+      "as": "nimali.perera@nirmana.demo",
+      "call": "record_payment",
+      "args": {
+        "project_id": "$perera",
+        "amount": 800000,
+        "date": "2026-08-20",
+        "note": "Advance for slab",
+        "element_name": "Slab"
+      }
+    },
+    {
+      "as": "ruwan.silva@nirmana.demo",
+      "call": "report_progress",
+      "args": {
+        "project_id": "$perera",
+        "element_name": "Site prep",
+        "percent": 100,
+        "on_date": "2026-03-18",
+        "actual_cost": 150000,
+        "started_on": "2026-03-02"
+      }
+    },
+    {
+      "as": "ruwan.silva@nirmana.demo",
+      "call": "report_progress",
+      "args": {
+        "project_id": "$perera",
+        "element_name": "Foundation",
+        "percent": 100,
+        "on_date": "2026-04-28",
+        "actual_cost": 1180000,
+        "started_on": "2026-03-18"
+      }
+    },
+    {
+      "as": "ruwan.silva@nirmana.demo",
+      "call": "report_progress",
+      "args": {
+        "project_id": "$perera",
+        "element_name": "Columns",
+        "percent": 100,
+        "on_date": "2026-06-01",
+        "actual_cost": 550000,
+        "started_on": "2026-04-28"
+      }
+    },
+    {
+      "as": "ruwan.silva@nirmana.demo",
+      "call": "report_progress",
+      "args": {
+        "project_id": "$perera",
+        "element_name": "Walls",
+        "percent": 100,
+        "on_date": "2026-07-20",
+        "actual_cost": 800000,
+        "started_on": "2026-06-01"
+      }
+    },
+    {
+      "as": "ruwan.silva@nirmana.demo",
+      "call": "report_progress",
+      "args": {
+        "project_id": "$perera",
+        "element_name": "Slab",
+        "percent": 60,
+        "on_date": "2026-10-10",
+        "actual_cost": 420000,
+        "started_on": "2026-07-21"
+      }
+    },
+    {
+      "as": "anushka.fernando@nirmana.demo",
+      "call": "verify_progress",
+      "args": {
+        "project_id": "$perera",
+        "element_name": "Site prep",
+        "verified_percent": 100,
+        "note": "Site visit 18 Mar."
+      }
+    },
+    {
+      "as": "anushka.fernando@nirmana.demo",
+      "call": "verify_progress",
+      "args": {
+        "project_id": "$perera",
+        "element_name": "Foundation",
+        "verified_percent": 100,
+        "note": "Footings inspected."
+      }
+    },
+    {
+      "as": "anushka.fernando@nirmana.demo",
+      "call": "verify_progress",
+      "args": {
+        "project_id": "$perera",
+        "element_name": "Columns",
+        "verified_percent": 100,
+        "note": "Columns inspected."
+      }
+    },
+    {
+      "as": "anushka.fernando@nirmana.demo",
+      "call": "verify_progress",
+      "args": {
+        "project_id": "$perera",
+        "element_name": "Walls",
+        "verified_percent": 100,
+        "note": "Ground-floor walls inspected."
+      }
+    },
+    {
+      "as": "ruwan.silva@nirmana.demo",
+      "call": "send_builder_message",
+      "args": {
+        "project_id": "$perera",
+        "message": "slab eka iwarai, cement 40k gaththa"
+      }
+    },
+    {
+      "as": "ruwan.silva@nirmana.demo",
+      "call": "request_payment",
+      "args": {
+        "project_id": "$perera",
+        "amount": 800000,
+        "note": "Slab completion"
+      }
+    },
+    {
+      "as": "kamal.jayasuriya@nirmana.demo",
+      "call": "create_project",
+      "save_as": "jayasuriya",
+      "args": {
+        "name": "Jayasuriya Annex",
+        "location": "Colombo 5",
+        "district": "Colombo",
+        "building_type": "Extension",
+        "floor_area_sqft": 900,
+        "contract_sum": 4600000,
+        "start_date": "2026-09-01",
+        "handover_date": "2027-02-28",
+        "my_role": "client",
+        "advance_limit_pct": 10,
+        "retention_pct": 5
+      }
+    },
+    {
+      "as": "kamal.jayasuriya@nirmana.demo",
+      "call": "invite_member",
+      "args": {
+        "project_id": "$jayasuriya",
+        "email": "ruwan.silva@nirmana.demo",
+        "role": "contractor",
+        "name": "Ruwan Silva"
+      }
+    },
+    {
+      "as": "kamal.jayasuriya@nirmana.demo",
+      "call": "add_element",
+      "args": {
+        "project_id": "$jayasuriya",
+        "name": "Foundation",
+        "kind": "structure",
+        "planned_cost": 900000,
+        "planned_start": "2026-09-01",
+        "planned_end": "2026-10-10"
+      }
+    },
+    {
+      "as": "kamal.jayasuriya@nirmana.demo",
+      "call": "add_element",
+      "args": {
+        "project_id": "$jayasuriya",
+        "name": "Walls",
+        "kind": "structure",
+        "planned_cost": 1200000,
+        "planned_start": "2026-10-10",
+        "planned_end": "2026-11-20",
+        "prerequisites": [
+          "Foundation"
+        ]
+      }
+    },
+    {
+      "as": "kamal.jayasuriya@nirmana.demo",
+      "call": "record_payment",
+      "args": {
+        "project_id": "$jayasuriya",
+        "amount": 1500000,
+        "date": "2026-09-05",
+        "note": "Advance"
+      }
+    },
+    {
+      "as": "ruwan.silva@nirmana.demo",
+      "call": "report_progress",
+      "args": {
+        "project_id": "$jayasuriya",
+        "element_name": "Foundation",
+        "percent": 40,
+        "on_date": "2026-09-03",
+        "actual_cost": 300000,
+        "started_on": "2026-09-03"
+      }
+    }
+  ]
+}

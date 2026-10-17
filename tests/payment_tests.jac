@@ -19,13 +19,13 @@ test "verified_value is planned cost times percent" {
 
 test "assess approves a request inside verified value" {
     # allowed total = 2.6M * 1.1 = 2.86M; paid 1M; headroom 1.86M >= 500k
-    d = assess(1000000.0, 2600000.0, 500000.0);
+    d = assess(1000000.0, 2600000.0, 500000.0, 0.10);
     assert d.verdict == "approve";
     assert d.release_now == 500000.0;
 }
 
 test "assess holds when paid is already ahead of work" {
-    d = assess(4200000.0, 2600000.0, 800000.0);
+    d = assess(4200000.0, 2600000.0, 800000.0, 0.10);
     assert d.verdict == "hold";
     assert d.hold == 800000.0;
     assert d.release_now == 0.0;
@@ -33,7 +33,7 @@ test "assess holds when paid is already ahead of work" {
 
 test "assess releases part when headroom is smaller than the request" {
     # headroom = 2.86M - 2.5M = 360k, request 800k -> release 360k, hold 440k
-    d = assess(2500000.0, 2600000.0, 800000.0);
+    d = assess(2500000.0, 2600000.0, 800000.0, 0.10);
     assert d.verdict == "partial";
     assert abs(d.release_now - 360000.0) < 0.01;
     assert abs(d.hold - 440000.0) < 0.01;

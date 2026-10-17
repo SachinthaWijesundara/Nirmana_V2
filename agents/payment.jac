@@ -1,10 +1,10 @@
 """Payment Guard: compares money paid with verified built value and acts. It holds suspicious
 payment requests, and releases them (fully or in part) once proof raises the verified value.
-All money rules are plain deterministic Jac. No LLM decides money."""
-import from twin { House, Element, Payment, PaymentStatus, Activity, Has }
+All money rules are plain deterministic Jac. No LLM decides money.
 
-# Advance allowed on top of verified built value (10%) before a request is held.
-glob ADVANCE_TOLERANCE: float = 0.10;
+The advance allowed on top of verified work is a per-project setting (House.advance_limit_pct),
+entered when the project is created, not a constant in code."""
+import from twin { House, Element, Payment, PaymentStatus, Activity, Has, now_iso, today_iso }
 
 obj Decision {
     has verdict: str,
@@ -18,10 +18,10 @@ def verified_value(planned_cost: float, verified_pct: float) -> float {
     return planned_cost * verified_pct / 100.0;
 }
 
-"""Decide a payment request. paid = already paid, verified = verified built value, request = amount asked now."""
-def assess(paid: float, verified: float, request: float) -> Decision {
-    # Example: paid 4.2M, verified 2.6M -> allowed total 2.86M, headroom = max(0, 2.86M - 4.2M) = 0, so 800k is held.
-    allowed_total = verified * (1.0 + ADVANCE_TOLERANCE);
+"""Decide a payment request. paid = already paid, verified = verified built value,
+request = amount asked now, tolerance = advance allowed on top of verified work (0.10 = 10%)."""
+def assess(paid: float, verified: float, request: float, tolerance: float) -> Decision {
+    allowed_total = verified * (1.0 + tolerance);
     headroom = allowed_total - paid;
     if headroom < 0.0 {
         headroom = 0.0;
@@ -59,9 +59,24 @@ def rs(amount: float) -> str {
     return f"Rs. {int(amount / 1000.0)}k";
 }
 
-walker:pub PaymentGuard {
+def add_payment(house: House, amount: float, status: PaymentStatus, note: str, recorded_by: str) -> Payment {
+    p = Payment(amount=amount, status=status, note=note, date=today_iso(), recorded_by=recorded_by);
+    house +>:Has():+> p;
+    grant(p, level=WritePerm);
+    return p;
+}
+
+def add_activity(house: House, actor: str, kind: str, text: str) -> None {
+    a = Activity(actor=actor, kind=kind, text=text, role="system", category="money", at=now_iso());
+    house +>:Has():+> a;
+    grant(a, level=WritePerm);
+}
+
+"""Spawn on a House. The project's advance limit decides how much may be paid ahead of verified work."""
+walker PaymentGuard {
     has request_amount: float;
     has note: str = "";
+    has requested_by: str = "";
 
     can start with Root entry {
         visit [-->[?:House]];
@@ -69,21 +84,21 @@ walker:pub PaymentGuard {
 
     can guard with House entry {
         t = totals(here);
-        d = assess(t["paid"], t["verified"], self.request_amount);
+        d = assess(t["paid"], t["verified"], self.request_amount, here.advance_limit_pct / 100.0);
         if d.release_now > 0.0 {
-            here +>:Has():+> Payment(amount=d.release_now, status=PaymentStatus.PAID, note=self.note);
+            add_payment(here, d.release_now, PaymentStatus.PAID, self.note, self.requested_by);
         }
         if d.hold > 0.0 {
-            here +>:Has():+> Payment(amount=d.hold, status=PaymentStatus.HELD, note=self.note);
+            add_payment(here, d.hold, PaymentStatus.HELD, self.note, self.requested_by);
         }
         msg = f"Paid {rs(t['paid'])}, verified built {rs(t['verified'])}. Request {d.verdict}: released {rs(d.release_now)}, held {rs(d.hold)}.";
-        here +>:Has():+> Activity(actor="payment_guard", kind="payment_" + d.verdict, text=msg);
+        add_activity(here, "payment_guard", "payment_" + d.verdict, msg);
         report {"verdict": d.verdict, "release_now": d.release_now, "hold": d.hold, "paid": t["paid"], "verified": t["verified"], "message": msg};
     }
 }
 
 """Proof arrived: raise the element's verified progress, then release held payments the proof now covers."""
-walker:pub ReleaseOnProof {
+walker ReleaseOnProof {
     has element_name: str;
     has verified_percent: float;
 
@@ -105,13 +120,14 @@ walker:pub ReleaseOnProof {
         if el.verified_pct > el.percent_complete {
             el.percent_complete = el.verified_pct;
         }
+        tolerance = here.advance_limit_pct / 100.0;
         released = 0.0;
         for p in [here ->:Has:->[?:Payment]] {
             if p.status != PaymentStatus.HELD {
                 continue;
             }
             t = totals(here);
-            d = assess(t["paid"], t["verified"], p.amount);
+            d = assess(t["paid"], t["verified"], p.amount, tolerance);
             if d.release_now <= 0.0 {
                 continue;
             }
@@ -119,13 +135,13 @@ walker:pub ReleaseOnProof {
                 p.status = PaymentStatus.RELEASED;
             } else {
                 p.amount = p.amount - d.release_now;
-                here +>:Has():+> Payment(amount=d.release_now, status=PaymentStatus.RELEASED, note=p.note);
+                add_payment(here, d.release_now, PaymentStatus.RELEASED, p.note, "payment_guard");
             }
             released += d.release_now;
         }
         t2 = totals(here);
         msg = f"Proof for {el.name} ({self.verified_percent}%). Released {rs(released)}; verified built now {rs(t2['verified'])}.";
-        here +>:Has():+> Activity(actor="payment_guard", kind="release_on_proof", text=msg);
+        add_activity(here, "payment_guard", "release_on_proof", msg);
         report {"ok": True, "released": released, "verified": t2["verified"], "message": msg};
     }
 }
