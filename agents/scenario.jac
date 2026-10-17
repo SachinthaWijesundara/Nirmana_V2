@@ -30,7 +30,7 @@ walker scenario {
             else { impact = impact + f"{self.delay_element} is delayed {self.delay_days} days"; }
         }
         if impact == "" { impact = "no changes"; }
-        summary = f"What if {impact}: finish moves {change}, Rs. {extra_cost} more.";
+        summary = f"What if {impact}: finish moves {change}, Rs. {extra_cost:,.0f} more.";
         diff = {"extra_cost": extra_cost, "extra_days": extra_days, "finish_date_change": change};
         activity = Activity(actor="scenario", kind="what_if", text=summary, role="system", category="progress", at=now_iso());
         house +>:Has():+> activity;

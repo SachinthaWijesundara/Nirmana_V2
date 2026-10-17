@@ -4,7 +4,7 @@ plus the P1/P2 agents exposed per project with role checks.
 All endpoints are authenticated (plain def). Call them as POST /function/<name> with a
 Bearer token and a JSON body of the parameters."""
 import from twin {
-    House, Element, Payment, PaymentStatus, Member, Activity, Update, DelayNotice, Has,
+    House, Element, Payment, PaymentStatus, Member, Activity, Update, DelayNotice, Photo, Has,
     depends_on, paid_by, ROLES, now_iso, today_iso, find_element, elements, money_summary,
     element_row, revised_budget
 }
@@ -16,6 +16,9 @@ import from agents.payment { PaymentGuard, ReleaseOnProof }
 import from agents.delay { DelayDetector }
 import from agents.forecast { forecast }
 import from agents.scenario { scenario }
+import from agents.photo { PhotoCheck, check_photo, vision_available, proven_percent }
+import from agents.qa { ask }
+import from byllm.lib { Image }
 
 def require(ok: bool, message: str) -> None {
     if not ok { raise ValueError(message); }
@@ -276,4 +279,57 @@ def run_scenario(project_id: str, cement_pct: float = 0.0, delay_days: int = 0, 
     require(len(elements(ctx.house)) > 0, "Add elements to the plan before running a scenario.");
     res = ctx.house spawn scenario(cement_pct=cement_pct, delay_days=delay_days, delay_element=delay_element, today=today);
     return res.reports[0] as dict[str, any];
+}
+
+# ---------------------------------------------------------------- photo proof and Q&A
+
+glob MAX_PHOTO_CHARS: int = 6000000;  # about 4.5 MB of image as a data URL
+glob MIN_PHOTO_CONFIDENCE: float = 0.6;
+
+"""Send a site photo as proof for an element (a data URL or an image URL). A vision model checks
+it; a confident match raises the verified progress (up to what was reported) and releases held
+money the proof covers. Without a vision model the photo is stored for the architect to review."""
+def submit_photo_proof(project_id: str, element_name: str, image: str, note: str = "") -> dict[str, any] {
+    ctx = access(project_id, ["contractor", "architect"]);
+    found = find_element(ctx.house, element_name);
+    require(found is not None, f"Unknown element {element_name}.");
+    require(image.startswith("data:image/") or image.startswith("http"), "image must be a data:image/... URL or an http(s) link.");
+    require(len(image) <= MAX_PHOTO_CHARS, "The photo is too large (limit about 4.5 MB).");
+    el = found as Element;
+    photo = Photo(url=image, date=today_iso(), caption=note, author=ctx.me.name);
+    el +>:Has():+> photo;
+    grant(photo, level=WritePerm);
+    el.photos = el.photos + [jid(photo)];
+    result: dict[str, any] = {"element": el.name, "photo_id": jid(photo), "checked": False, "released": 0.0, "verified_pct": el.verified_pct};
+    if not vision_available() {
+        result["message"] = "Photo saved. No vision model is configured, so the architect needs to review it.";
+        log(ctx, "photo_proof", f"{ctx.me.name} sent a photo of {el.name} (waiting for review).", "progress");
+        return result;
+    }
+    check: PhotoCheck = check_photo(Image(image), el.name, el.kind, el.percent_complete);
+    proven = proven_percent(check, el.percent_complete, MIN_PHOTO_CONFIDENCE);
+    result["checked"] = True;
+    result["shows_element"] = check.shows_element;
+    result["estimated_percent"] = check.estimated_percent;
+    result["confidence"] = check.confidence;
+    result["observations"] = check.observations;
+    if proven > el.verified_pct {
+        res = ctx.house spawn ReleaseOnProof(element_name=el.name, verified_percent=proven);
+        release = res.reports[0] as dict[str, any];
+        result["released"] = release["released"];
+        result["verified_pct"] = el.verified_pct;
+        result["message"] = f"Photo accepted as proof: {el.name} verified at {proven}%. {release['message']}";
+    } else {
+        result["message"] = "The photo was not accepted as new proof. " + check.observations;
+    }
+    log(ctx, "photo_proof", f"Photo of {el.name} checked by AI: {check.observations}", "progress");
+    return result;
+}
+
+"""Ask a question about the project in plain words. language: english, sinhala or tamil."""
+def ask_project(project_id: str, question: str, language: str = "english") -> dict[str, any] {
+    ctx = access(project_id);
+    require(question.strip() != "", "question is empty.");
+    require(language in ["english", "sinhala", "tamil"], "language must be english, sinhala or tamil.");
+    return ask(ctx.house, question, language);
 }
