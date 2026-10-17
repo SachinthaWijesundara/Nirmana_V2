@@ -7,7 +7,8 @@ and stored in Jac's graph database (`.jac/data/`, created on first run).
 ## Run it
 
 ```bash
-pip install -r requirements.txt
+curl -fsSL https://raw.githubusercontent.com/jaseci-labs/jaseci/main/scripts/install.sh | bash   # Jac 0.34.23 (Linux/macOS/WSL)
+jac install
 jac start main.jac                      # web app + API on http://localhost:8000 (needs Node/npm)
 jac run scripts/seed_demo.jac           # optional: load the demo accounts and projects
 ```
