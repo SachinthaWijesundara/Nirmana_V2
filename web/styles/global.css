@@ -42,7 +42,7 @@ h1,h2,h3,p{margin:0}
 .pill i{width:7px;height:7px;border-radius:50%;display:block}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:999px;font-weight:700;white-space:nowrap;border:1px solid transparent}
 .btn.primary{background:var(--midnight);color:var(--inv)}.btn.accent{background:var(--marigold);color:var(--text)}
-.btn.ghost{background:var(--surface);border-color:var(--border);color:var(--text)}.btn.text{color:var(--text)}.btn.danger{background:var(--t-danger);color:var(--danger)}
+.btn.inv{color:var(--inv)}.btn.ghost{background:var(--surface);border-color:var(--border);color:var(--text)}.btn.text{color:var(--text)}.btn.danger{background:var(--t-danger);color:var(--danger)}
 .btn.lg{padding:15px 18px}.btn.block{width:100%}.btn[disabled]{background:#a9bcc6;color:var(--inv);cursor:not-allowed;border-color:transparent}
 .btn.ghost[disabled]{background:var(--surface);color:var(--text2);border-color:var(--border)}
 .tab{padding:9px 16px;border-radius:999px;font-weight:700;color:var(--text2)}.tab.on{background:var(--midnight);color:var(--inv)}

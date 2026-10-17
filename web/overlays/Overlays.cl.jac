@@ -161,11 +161,13 @@ def:pub AskPanel(onClose: Callable[[], None]) -> JsxElement {
     }
     async def ask(q: str) -> None {
         if not q { return; }
-        thread = thread + [{"me": True, "text": q}];
+        acc = thread + [{"me": True, "text": q}];
+        thread = acc;
         text = "";
         busy = True;
         a: any = await command("ask", {"question": q});
-        thread = thread + [{"me": False, "a": a}];
+        acc = acc + [{"me": False, "a": a}];
+        thread = acc;
         busy = False;
     }
     return <div className="scrim" onClick={lambda { onClose(); }}>

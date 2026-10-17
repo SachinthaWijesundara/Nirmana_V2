@@ -1,8 +1,8 @@
 """SVG line chart used by Market prices and the Overview cost curve."""
 
 def:pub LineChart(series: list[any], xmax: float, ymin: float, ymax: float, labels: list[any], width: int = 700, height: int = 260, grid: int = 4, today: float = -1.0, todayLabel: str = "Today") -> JsxElement {
-    padL = 8;
-    padR = 8;
+    padL = 22;
+    padR = 22;
     padT = 10;
     padB = 28;
     iw = width - padL - padR;

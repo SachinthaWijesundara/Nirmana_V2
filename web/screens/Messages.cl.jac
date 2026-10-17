@@ -23,10 +23,12 @@ def:pub Messages() -> JsxElement {
         if not body { return; }
         text = "";
         if current == "ai" {
-            aiThread = aiThread + [{"mine": True, "text": body}];
+            acc = aiThread + [{"mine": True, "text": body}];
+            aiThread = acc;
             busy = True;
             a: any = await command("ask", {"question": body});
-            aiThread = aiThread + [{"mine": False, "text": a["text"]}];
+            acc = acc + [{"mine": False, "text": a["text"]}];
+            aiThread = acc;
             busy = False;
         } else {
             await command("send_message", {"thread": current, "text": body, "initials": user["initials"], "name": user["name"], "role": user["role"], "tone": user["tone"]});

@@ -195,12 +195,12 @@ def:pub Calculators() -> JsxElement {
 
 def:pub Market() -> JsxElement {
     res = useResource("market", {});
-    has product: str = "Cement", range: str = "12M", district: str = "Kandy";
+    has product: str = "Cement", span: str = "12M", district: str = "Kandy";
     m: any = res["data"];
     s: any = m["series"][product] if m else None;
     factor: float = 1.04;
     if m { for d in m["districts"] { if d["name"] == district { factor = d["factor"]; } } }
-    n: int = 6 if range == "6M" else 12;
+    n: int = 6 if span == "6M" else 12;
     pts: list[any] = [];
     base: list[any] = [];
     labels: list[any] = [];
@@ -231,7 +231,7 @@ def:pub Market() -> JsxElement {
                             <div className="row top">
                                 <div className="col g6"><span className="h3">{s["title"]}</span><div className="row g12"><span className="huge" style={{"fontSize": 36, "lineHeight": "44px"}}>{s["price"]}</span><Pill label={s["delta"]} tone={s["tone"] if s["tone"] != "danger" else "delayed"} /></div></div>
                                 <div className="grow" />
-                                <Seg options={["6M", "12M", "3Y"]} value={range} onChange={lambda v: str { range = v; }} />
+                                <Seg options={["6M", "12M", "3Y"]} value={span} onChange={lambda v: str { span = v; }} />
                             </div>
                             <LineChart series={[{"pts": pts, "color": "#013d5a", "dash": False, "fill": True, "dot": True}, {"pts": base, "color": "#f4a258", "dash": True, "fill": False, "dot": False}]} xmax={n - 1} ymin={lo * 0.97} ymax={hi * 1.03} labels={labels} width={720} height={280} />
                             <div className="row g16 sm t2"><span className="row g6"><i style={{"width": 16, "height": 3, "background": "#013d5a", "display": "block"}} />{district + " (×" + str(factor) + ")"}</span><span className="row g6"><i style={{"width": 16, "height": 3, "background": "#f4a258", "display": "block"}} />National average</span></div>

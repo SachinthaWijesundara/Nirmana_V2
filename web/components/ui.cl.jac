@@ -4,8 +4,8 @@ import from .Icon { Icon }
 
 glob PILL_BG: dict[str, str] = {"done": "#dde6d7", "herb": "#dde6d7", "progress": "#fce4cc", "marigold": "#fce4cc", "delayed": "#f6d9cf", "danger": "#f6d9cf", "info": "#dceae6", "celeste": "#dceae6", "neutral": "#d5e3ea", "midnight": "#d5e3ea", "muted": "#f5ead5"};
 glob PILL_DOT: dict[str, str] = {"done": "#708c69", "herb": "#708c69", "progress": "#f4a258", "marigold": "#f4a258", "delayed": "#c4553b", "danger": "#c4553b", "info": "#4f8a9e", "celeste": "#4f8a9e", "neutral": "#013d5a", "midnight": "#013d5a", "muted": "#cdbb9a"};
-glob TONE_SOLID: dict[str, str] = {"celeste": "#bdd3ce", "marigold": "#f4a258", "herb": "#708c69", "midnight": "#013d5a", "danger": "#c4553b", "subtle": "#f5ead5", "muted": "#cdbb9a", "white": "#ffffff"};
-glob TONE_TINT: dict[str, str] = {"celeste": "#dceae6", "marigold": "#fce4cc", "herb": "#dde6d7", "midnight": "#d5e3ea", "danger": "#f6d9cf", "neutral": "#d5e3ea", "info": "#dceae6", "progress": "#fce4cc", "delayed": "#f6d9cf", "muted": "#f5ead5", "subtle": "#f5ead5"};
+glob:pub TONE_SOLID: dict[str, str] = {"celeste": "#bdd3ce", "marigold": "#f4a258", "herb": "#708c69", "midnight": "#013d5a", "danger": "#c4553b", "subtle": "#f5ead5", "muted": "#cdbb9a", "white": "#ffffff"};
+glob:pub TONE_TINT: dict[str, str] = {"celeste": "#dceae6", "marigold": "#fce4cc", "herb": "#dde6d7", "midnight": "#d5e3ea", "danger": "#f6d9cf", "neutral": "#d5e3ea", "info": "#dceae6", "progress": "#fce4cc", "delayed": "#f6d9cf", "muted": "#f5ead5", "subtle": "#f5ead5"};
 
 def:pub Pill(label: str, tone: str = "info", dot: bool = True) -> JsxElement {
     bg = PILL_BG[tone] if tone in PILL_BG else "#dceae6";

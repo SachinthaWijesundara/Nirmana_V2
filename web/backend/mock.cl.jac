@@ -1,4 +1,5 @@
-"""Mock backend: an in-memory copy of the seed data. It is the default adapter, so the UI runs with no server.
+"""Mock backend: an in-memory copy of the seed data, kept in sessionStorage so a demo survives reloads (close the tab to reset).
+It is the default adapter, so the UI runs with no server.
 Implements the same two verbs as every adapter: mock_query(resource, params) and mock_command(action, payload)."""
 
 import from .seed_core { USERS, DASHBOARD, PROJECTS, APPROVALS, THREADS, MESSAGES, MESSAGE_NOTE, PINNED, MARKET, ESTIMATOR, CALC_RATES, ROLE_BLURBS }
@@ -7,7 +8,17 @@ import from ..lib.fmt { clone, rs }
 
 glob _db: any = None;
 
+def _save() -> None {
+    try { sessionStorage.setItem("nirmana.mock", JSON.stringify(_db)); } except Exception { }
+}
+
 def _ensure() -> any {
+    if not _db {
+        try {
+            saved: any = sessionStorage.getItem("nirmana.mock");
+            if saved { _db = JSON.parse(saved); }
+        } except Exception { }
+    }
     if not _db {
         _db = {
             "roles": clone(ROLE_BLURBS), "users": clone(USERS), "dashboard": clone(DASHBOARD), "projects": clone(PROJECTS),
@@ -68,10 +79,15 @@ async def:pub mock_query(resource: str, params: dict[str, any]) -> any {
     if resource.startswith("project.") {
         tab: str = resource[8:];
         data: any = clone(db["tabs"][tab]);
+        if tab == "ledger" {
+            rows = data["entries"] as list[any];
+            data["counts"] = {"all": 25, "pending": 1 + len([e for e in rows if e["status"] == "Pending review"]), "queried": len([e for e in rows if e["status"] == "Queried"]), "flagged": 1 + len([e for e in rows if e["flag"]])};
+        }
         extra = db["activity_extra"] as list[any];
         if tab == "activity" and len(extra) > 0 {
             groups = data["groups"] as list[any];
-            data["groups"] = [{"day": "Today · Sat 17 Oct", "items": clone(extra)}] + groups;
+            groups[0]["items"] = clone(extra) + (groups[0]["items"] as list[any]);
+            data["groups"] = groups;
         }
         return data;
     }
@@ -79,6 +95,12 @@ async def:pub mock_query(resource: str, params: dict[str, any]) -> any {
 }
 
 async def:pub mock_command(action: str, payload: dict[str, any]) -> any {
+    result: any = await _apply(action, payload);
+    _save();
+    return result;
+}
+
+async def _apply(action: str, payload: dict[str, any]) -> any {
     db: any = _ensure();
     await _latency();
     if action == "decide_approval" {
@@ -89,7 +111,8 @@ async def:pub mock_command(action: str, payload: dict[str, any]) -> any {
             done_items = db["approvals"]["done"] as list[any];
             db["approvals"]["items"] = [i for i in open_items if i["id"] != payload["id"]];
             db["approvals"]["done"] = [{"title": item["title"], "meta": ("Approved by you · 17 Oct" if approved else "Rejected by you · 17 Oct")}] + done_items;
-            _log_activity("Nimali Perera", "Client", "NP", "approved an item" if approved else "rejected an item", item["title"]);
+            noun = "a change order" if item["kind"] == "change" else ("a plan" if item["kind"] == "plan" else "an item");
+            _log_activity("Nimali Perera", "Client", "NP", ("approved " if approved else "rejected ") + noun, item["title"]);
             if item["kind"] == "change" {
                 order: any = _find(db["tabs"]["changes"]["orders"], "id", "CO-004");
                 order["status"] = "approved" if approved else "rejected";
@@ -215,6 +238,16 @@ async def:pub mock_command(action: str, payload: dict[str, any]) -> any {
         est["contingency"] = payload["contingency"];
         return est;
     }
+    if action == "approve_plan" {
+        sheet: any = _find(db["tabs"]["plans"]["sheets"], "id", "a102");
+        sheet["status"] = "Approved";
+        sheet["tone"] = "herb";
+        open_items = db["approvals"]["items"] as list[any];
+        db["approvals"]["items"] = [i for i in open_items if i["id"] != "plan-a102"];
+        _log_activity("Nimali Perera", "Client", "NP", "approved a plan", "A-102 Ground floor · rev C");
+        return {"ok": True, "message": "Plan rev C approved"};
+    }
+    if action == "noop" { return {"ok": True, "message": "Done"}; }
     if action == "create_project" { return {"ok": True, "message": "Project created"}; }
     raise Exception("mock backend: unknown action " + action);
 }
