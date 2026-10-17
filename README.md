@@ -83,6 +83,7 @@ Builder's message ──► Intake ──► House model ◄── Payment Guard
 | `agents/` | The three helpers: `intake.jac`, `payment.jac`, `delay.jac` |
 | `mock/` | The sample house used until the full model lands |
 | `tests/` | Tests for each helper |
+| `web/` | The web UI (Jac client app) with a pluggable backend. See [`web/README.md`](web/README.md) |
 | `.github/` | Automatic checks that run on every change |
 
 ## Quality checks
