@@ -42,8 +42,16 @@ project. A refused call returns `{"error": "..."}`.
 | `run_delay_check`, `get_forecast`, `run_scenario` | members | Delay Detector, Forecaster, what-if |
 
 Project settings such as the advance limit (Payment Guard) and retention are stored on each
-project when it is created. Intake uses an LLM when `GEDARA_MODEL` is set (for example
-`claude-sonnet-4-6` with `ANTHROPIC_API_KEY`), and a rule-based parser otherwise.
+project when it is created.
+
+## AI (Groq)
+
+Intake is the agent that uses an LLM. It runs on Groq when `GROQ_API_KEY` is set in the
+environment; the model defaults to `groq/openai/gpt-oss-120b` and can be changed with
+`GEDARA_MODEL`. On JacHammer, add `GROQ_API_KEY` under Settings → Environment. Never put the key
+in code or commit it (`.env` is git-ignored). With no key set, Intake uses a rule-based parser;
+tests and CI use a mock (`GEDARA_LLM=mock`) and need no key. The other agents (Payment Guard,
+Delay Detector, Forecaster, Scenario) are deterministic and never call an LLM.
 
 ## Demo logins (after running the seed script)
 

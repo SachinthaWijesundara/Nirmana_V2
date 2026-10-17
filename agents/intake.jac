@@ -23,13 +23,23 @@ def mock_update() -> ParsedUpdate {
     return ParsedUpdate(element_name="Slab", percent_complete=100.0, material="cement", cost_spent=40000.0, delay_reason="", language="singlish");
 }
 
-# GEDARA_LLM=mock (tests, CI) swaps in MockLLM. Otherwise the model name comes from the
-# GEDARA_MODEL environment variable. With no model configured, Intake uses the rule parser below.
+# Which model Intake uses:
+#   GEDARA_LLM=mock      -> MockLLM (tests, CI; no key needed)
+#   GROQ_API_KEY set     -> Groq, model from GEDARA_MODEL or groq/openai/gpt-oss-120b
+#   GEDARA_MODEL set     -> any other LiteLLM model name, with that provider's key in the environment
+#   nothing set          -> no LLM; Intake uses the rule parser below
+# Keys are only ever read from the environment, never stored in code.
+glob GROQ_DEFAULT_MODEL: str = "groq/openai/gpt-oss-120b";
+
 def build_llm() -> any {
     if os.environ.get("GEDARA_LLM", "") == "mock" {
         return MockLLM(model_name="mockllm", config={"outputs": [mock_update() for _ in range(20)]});
     }
     model_name = os.environ.get("GEDARA_MODEL", "");
+    if os.environ.get("GROQ_API_KEY", "") != "" {
+        if model_name == "" { model_name = GROQ_DEFAULT_MODEL; }
+        if not model_name.startswith("groq/") { model_name = "groq/" + model_name; }
+    }
     if model_name == "" { return None; }
     return Model(model_name=model_name);
 }
