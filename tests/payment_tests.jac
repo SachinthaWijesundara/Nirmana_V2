@@ -4,7 +4,8 @@ import from agents.intake { Intake }
 
 def demo_house() -> House {
     # Foundation 1.5M verified 100% = 1.5M; Walls 2.5M verified 44% = 1.1M; Slab reported 80% but not verified. Verified = 2.6M. Paid = 4.2M.
-    house = (root ++> House(name="Nimal house", total_budget=10000000.0))[0];
+    house = House(name="Nimal house", total_budget=10000000.0);
+    root ++> house;
     house +>:Has():+> Element(name="Foundation", planned_cost=1500000.0, percent_complete=100.0, verified_pct=100.0);
     house +>:Has():+> Element(name="Walls", planned_cost=2500000.0, percent_complete=44.0, verified_pct=44.0);
     house +>:Has():+> Element(name="Slab", planned_cost=3000000.0, percent_complete=80.0, verified_pct=0.0);
