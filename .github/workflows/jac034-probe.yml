@@ -1,0 +1,57 @@
+name: Jac 0.34 migration probe
+
+# Temporary: runs the project on the native Jac 0.34.23 binary (what JacHammer uses)
+# and publishes check/test output to the jac034-logs branch. Removed after the migration.
+on:
+  push:
+    branches: [migrate-jac-0.34]
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jac 0.34.23
+        run: |
+          base=https://github.com/jaseci-labs/jac/releases/download/v0.34.23
+          curl -fsSL -o jac "$base/jac-0.34.23-linux-x86_64"
+          curl -fsSL -o jac.sha256 "$base/jac-0.34.23-linux-x86_64.sha256"
+          echo "$(awk '{print $1}' jac.sha256)  jac" | sha256sum -c -
+          chmod +x jac && sudo mv jac /usr/local/bin/jac && rm jac.sha256
+
+      - name: Probe
+        env:
+          GEDARA_LLM: mock
+          PYTHONUTF8: "1"
+        run: |
+          mkdir -p "$RUNNER_TEMP/out"; out="$RUNNER_TEMP/out"
+          jac --version > "$out/version.txt" 2>&1 || true
+          (jac install > "$out/install.txt" 2>&1; echo "exit=$?" >> "$out/install.txt") || true
+          for g in jac-core-cheatsheet jac-by-llm jac-config jac-cl-components jac-cl-auth jac-fullstack-patterns jac-sv-auth jac-sv-multi-user jac-types jac-testing; do
+            jac guide "$g" > "$out/guide_$g.txt" 2>&1 || true
+          done
+          for f in $(git ls-files '*.jac'); do
+            n=$(echo "$f" | tr '/' '_'); rm -rf .jac
+            jac check "$f" > "$out/check_$n.txt" 2>&1; echo "$f exit=$?" >> "$out/check_summary.txt"
+          done
+          for f in $(git ls-files '*.jac'); do
+            grep -qE '^\s*test\b' "$f" || continue
+            n=$(echo "$f" | tr '/' '_'); rm -rf .jac
+            timeout 300 jac test "$f" > "$out/test_$n.txt" 2>&1; echo "$f exit=$?" >> "$out/test_summary.txt"
+          done
+
+      - name: Publish logs
+        if: always()
+        run: |
+          git config user.name "probe-bot"; git config user.email "probe-bot@users.noreply.github.com"
+          git checkout --orphan jac034-logs
+          git rm -rfq . > /dev/null
+          rm -rf ./* .jac 2>/dev/null || true
+          cp -r "$RUNNER_TEMP/out/." .
+          echo "$GITHUB_SHA" > SOURCE_SHA
+          git add -A && git commit -qm "probe $GITHUB_SHA" && git push -f origin jac034-logs
