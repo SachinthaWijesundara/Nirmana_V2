@@ -1,5 +1,8 @@
 """One project: the twin, the plan, every agent, photo proof, Q&A and the audit trail.
 Actions are shown only to the role allowed to take them; the server checks the role too."""
+# Jac 0.34's client caches server-call results for 60s and doesn't invalidate them after our writes,
+# so every load and action below starts with __jacClearCache() to show fresh data.
+import from "@jac/runtime" { __jacClearCache }
 sv import from ..api.projects {
     get_project, get_activity, invite_member, add_element, record_payment,
     send_builder_message, report_progress, request_payment, verify_progress,
@@ -69,6 +72,8 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
     has askLang: str = "english";
 
     async def load() -> None {
+
+        __jacClearCache();
         data: any = None;
         try {
             project_id = projectId;
@@ -83,6 +88,8 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
     }
 
     async def act(label: str, run: Callable[[], any]) -> None {
+
+        __jacClearCache();
         out: any = None;
         notice = "";
         result = "";
@@ -94,6 +101,8 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
     }
 
     async def sendMessage() -> None {
+
+        __jacClearCache();
         out: any = None;
         notice = "";
         try {
@@ -109,6 +118,8 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
     }
 
     async def addElement() -> None {
+
+        __jacClearCache();
         out: any = None;
         notice = "";
         try {
@@ -128,6 +139,8 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
     }
 
     async def recordPayment() -> None {
+
+        __jacClearCache();
         out: any = None;
         notice = "";
         try {
@@ -143,6 +156,8 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
     }
 
     async def reportProgress() -> None {
+
+        __jacClearCache();
         out: any = None;
         notice = "";
         try {
@@ -159,6 +174,8 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
     }
 
     async def requestPayment() -> None {
+
+        __jacClearCache();
         out: any = None;
         notice = "";
         try {
@@ -172,6 +189,8 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
     }
 
     async def verify() -> None {
+
+        __jacClearCache();
         out: any = None;
         notice = "";
         try {
@@ -194,6 +213,8 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
     }
 
     async def sendPhoto() -> None {
+
+        __jacClearCache();
         out: any = None;
         notice = "";
         result = "Checking the photo...";
@@ -212,6 +233,8 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
     }
 
     async def invite() -> None {
+
+        __jacClearCache();
         out: any = None;
         notice = "";
         try {
@@ -228,6 +251,8 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
     }
 
     async def loadForecast() -> None {
+
+        __jacClearCache();
         out: any = None;
         notice = "";
         try {
@@ -239,6 +264,8 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
     }
 
     async def runScenario() -> None {
+
+        __jacClearCache();
         out: any = None;
         notice = "";
         try {
@@ -253,6 +280,8 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
     }
 
     async def checkDelays() -> None {
+
+        __jacClearCache();
         out: any = None;
         notice = "";
         try {
@@ -266,6 +295,8 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
     }
 
     async def askIt() -> None {
+
+        __jacClearCache();
         out: any = None;
         notice = "";
         try {
@@ -277,6 +308,8 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
     }
 
     async def loadActivity() -> None {
+
+        __jacClearCache();
         out: any = None;
         try {
             project_id = projectId;

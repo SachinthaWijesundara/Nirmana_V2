@@ -20,6 +20,12 @@ import from agents.photo { PhotoCheck, check_photo, vision_available, proven_per
 import from agents.qa { ask }
 import from jaclang.byllm.lib { Image }
 
+"""Numbers can reach the 0.34 server as text (form fields, or a left-out argument's default)."""
+def num(value: any, fallback: float = 0.0) -> float {
+    if value is None or str(value).strip() == "" { return fallback; }
+    return float(value);
+}
+
 def require(ok: bool, message: str) -> None {
     if not ok { raise ValueError(message); }
 }
@@ -53,6 +59,10 @@ def create_project(
     handover_date: str = "", my_role: str = "client", advance_limit_pct: float = 10.0,
     retention_pct: float = 5.0
 ) -> dict[str, any] {
+    floor_area_sqft = num(floor_area_sqft);
+    contract_sum = num(contract_sum);
+    advance_limit_pct = num(advance_limit_pct, 10.0);
+    retention_pct = num(retention_pct, 5.0);
     p = me();
     require(name.strip() != "", "A project name is required.");
     require(my_role in ROLES, f"my_role must be one of {ROLES}.");
@@ -100,6 +110,10 @@ def update_project(
     floor_area_sqft: float = -1.0, contract_sum: float = -1.0, handover_date: str = "", status: str = "",
     advance_limit_pct: float = -1.0, retention_pct: float = -1.0
 ) -> dict[str, any] {
+    floor_area_sqft = num(floor_area_sqft, -1.0);
+    contract_sum = num(contract_sum, -1.0);
+    advance_limit_pct = num(advance_limit_pct, -1.0);
+    retention_pct = num(retention_pct, -1.0);
     ctx = access(project_id, ["client"]);
     h = ctx.house;
     if name != "" { h.name = name; }
@@ -121,18 +135,23 @@ def update_project(
 """Add a phase / bill-of-quantities line. prerequisites lists phases that must finish first."""
 def add_element(
     project_id: str, name: str, planned_cost: float, planned_start: str, planned_end: str,
-    kind: str = "", floor: str = "", prerequisites: list[str] = [], qty: float = 0.0, unit: str = "",
-    material_shares: dict[str, float] = {}
+    kind: str = "", floor: str = "", prerequisites: list[str] | None = None, qty: float = 0.0, unit: str = "",
+    material_shares: dict[str, float] | None = None
 ) -> dict[str, any] {
+    planned_cost = num(planned_cost);
+    qty = num(qty);
+    # Empty list/dict defaults reach the server as strings on Jac 0.34, so default to None.
+    deps: list[str] = prerequisites if isinstance(prerequisites, list) else [];
+    shares: dict[str, float] = material_shares if isinstance(material_shares, dict) else {};
     ctx = access(project_id, ["client", "architect"]);
     require(name.strip() != "", "An element name is required.");
     require(find_element(ctx.house, name) is None, f"{name} already exists on this project.");
     require(planned_cost >= 0.0, "planned_cost cannot be negative.");
     require(planned_start <= planned_end, "planned_start must be on or before planned_end.");
-    el = Element(name=name.strip(), kind=kind, floor=floor, planned_cost=planned_cost, planned_start=planned_start, planned_end=planned_end, qty=qty, unit=unit, material_shares=material_shares);
+    el = Element(name=name.strip(), kind=kind, floor=floor, planned_cost=planned_cost, planned_start=planned_start, planned_end=planned_end, qty=qty, unit=unit, material_shares=shares);
     ctx.house +>:Has():+> el;
     grant(el, level=WritePerm);
-    for dep_name in prerequisites {
+    for dep_name in deps {
         dep = find_element(ctx.house, dep_name);
         require(dep is not None, f"Unknown element {dep_name} in prerequisites.");
         el +>:depends_on():+> (dep as Element);
@@ -146,6 +165,7 @@ def update_element(
     project_id: str, element_name: str, planned_cost: float = -1.0, planned_start: str = "",
     planned_end: str = "", kind: str = "", floor: str = ""
 ) -> dict[str, any] {
+    planned_cost = num(planned_cost, -1.0);
     ctx = access(project_id, ["client", "architect"]);
     found = find_element(ctx.house, element_name);
     require(found is not None, f"Unknown element {element_name}.");
@@ -161,6 +181,7 @@ def update_element(
 
 """Record a payment the client has already made (e.g. before the project was on Nirmana)."""
 def record_payment(project_id: str, amount: float, date: str = "", note: str = "", element_name: str = "") -> dict[str, any] {
+    amount = num(amount);
     ctx = access(project_id, ["client"]);
     require(amount > 0.0, "amount must be positive.");
     pay = Payment(amount=amount, status=PaymentStatus.PAID, note=note, date=date if date != "" else today_iso(), recorded_by=ctx.me.name);
@@ -221,6 +242,8 @@ def send_builder_message(project_id: str, message: str) -> dict[str, any] {
 on_date is when this progress was reached (defaults to today); started_on is when the work
 began, if it is the first report. They set the element's actual start and finish dates."""
 def report_progress(project_id: str, element_name: str, percent: float, on_date: str = "", started_on: str = "", actual_cost: float = 0.0) -> dict[str, any] {
+    percent = num(percent);
+    actual_cost = num(actual_cost);
     ctx = access(project_id, ["contractor"]);
     require(percent >= 0.0 and percent <= 100.0, "percent must be between 0 and 100.");
     found = find_element(ctx.house, element_name);
@@ -239,6 +262,7 @@ def report_progress(project_id: str, element_name: str, percent: float, on_date:
 
 """Contractor asks for money. Payment Guard releases what verified work covers and holds the rest."""
 def request_payment(project_id: str, amount: float, note: str = "") -> dict[str, any] {
+    amount = num(amount);
     ctx = access(project_id, ["contractor"]);
     require(amount > 0.0, "amount must be positive.");
     res = ctx.house spawn PaymentGuard(request_amount=amount, note=note, requested_by=ctx.me.name);
@@ -248,6 +272,7 @@ def request_payment(project_id: str, amount: float, note: str = "") -> dict[str,
 
 """Architect verifies an element from proof (photos, inspection). Held money the proof covers is released."""
 def verify_progress(project_id: str, element_name: str, verified_percent: float, note: str = "") -> dict[str, any] {
+    verified_percent = num(verified_percent);
     ctx = access(project_id, ["architect"]);
     res = ctx.house spawn ReleaseOnProof(element_name=element_name, verified_percent=verified_percent);
     result = res.reports[0] as dict[str, any];
@@ -275,6 +300,8 @@ def get_forecast(project_id: str, today: str = "") -> dict[str, any] {
 
 """What-if: cement price change (%) and/or a delay. The real twin is not changed."""
 def run_scenario(project_id: str, cement_pct: float = 0.0, delay_days: int = 0, delay_element: str = "", today: str = "") -> dict[str, any] {
+    cement_pct = num(cement_pct);
+    delay_days = int(num(delay_days));
     ctx = access(project_id);
     require(len(elements(ctx.house)) > 0, "Add elements to the plan before running a scenario.");
     res = ctx.house spawn scenario(cement_pct=cement_pct, delay_days=delay_days, delay_element=delay_element, today=today);

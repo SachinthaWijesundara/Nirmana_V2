@@ -1,5 +1,7 @@
 """Nirmana web UI: sign up / log in, then the projects you are on."""
-import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn }
+# Jac 0.34's client caches server-call results for 60s and doesn't invalidate them after our writes,
+# so every load and action below starts with __jacClearCache() to show fresh data.
+import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn, __jacClearCache }
 sv import from ..api.access { create_profile, get_me }
 sv import from ..api.projects { list_projects, create_project }
 import from .ProjectView { ProjectView }
@@ -38,6 +40,8 @@ def:pub App() -> JsxElement {
     has showNew: bool = False;
 
     async def refresh() -> None {
+
+        __jacClearCache();
         me: any = None;
         rows: any = None;
         try {
@@ -63,6 +67,8 @@ def:pub App() -> JsxElement {
     }
 
     async def doLogin() -> None {
+
+        __jacClearCache();
         ok: bool = False;
         busy = True;
         notice = "";
@@ -77,6 +83,8 @@ def:pub App() -> JsxElement {
     }
 
     async def doSignup() -> None {
+
+        __jacClearCache();
         signup: dict | None = None;
         ok: bool = False;
         created: any = None;
@@ -107,6 +115,8 @@ def:pub App() -> JsxElement {
     }
 
     async def doCreateProfile() -> None {
+
+        __jacClearCache();
         created: any = None;
         notice = "";
         try {
@@ -120,6 +130,8 @@ def:pub App() -> JsxElement {
     }
 
     async def doCreateProject() -> None {
+
+        __jacClearCache();
         created: any = None;
         notice = "";
         try {
@@ -157,6 +169,8 @@ def:pub App() -> JsxElement {
     }
 
     async def backToList() -> None {
+
+        __jacClearCache();
         selected = "";
         await refresh();
     }

@@ -71,11 +71,11 @@ Each project page has these tabs:
 | **Team** | Who is on the project and in which role; invite new people. |
 | **Activity** | The full record of who did what, in which role and when. It cannot be edited. |
 
-Each person only sees the projects they belong to. Nothing in the app is pre-filled: projects, plans, payments and progress are all entered through the website (or the API) and stored in the project's database.
+The website has a dark, minimal look and works on phones as well as laptops. Each person only sees the projects they belong to. Nothing in the app is pre-filled: projects, plans, payments and progress are all entered through the website (or the API) and stored in the project's database.
 
 ## Current status
 
-This is a hackathon prototype (AI Hackathon 2026, Jaseci). The accounts, the website and all seven helpers above work and are tested, including with a real AI model. Not built yet: live material prices, payment milestones with architect sign-off, receipts and the ledger, change orders, plan drawings, messages, and the estimator from the full design. See [`BACKEND.md`](BACKEND.md) for the technical details, and [`plan.md`](plan.md) and [`PLAN-P2.md`](PLAN-P2.md) for the original plans.
+This is a hackathon prototype (AI Hackathon 2026, Jaseci). It runs on **Jac 0.34.23**. The accounts, the website and all seven helpers above work and are tested, including with a real AI model, and a full run with a client, a contractor and an architect working on the same project passes on a real Jac 0.34 server: every action by every role shows up for the others. Not built yet: live material prices, payment milestones with architect sign-off, receipts and the ledger, change orders, plan drawings, messages, and the estimator from the full design. See [`BACKEND.md`](BACKEND.md) for the technical details, and [`plan.md`](plan.md) and [`PLAN-P2.md`](PLAN-P2.md) for the original plans.
 
 ## Try it
 
@@ -123,6 +123,20 @@ jac start main.jac
 ```
 
 On JacHammer, add `GROQ_API_KEY` under **Settings → Environment** instead. **Never paste a key into a file or commit it**; the project's checks will reject it. Without a key, Nirmana still works: messages and questions are handled by simpler built-in rules, and photos are kept for the architect to review by hand.
+
+### Running it on JacHammer
+
+Open the project in JacHammer, add `GROQ_API_KEY` under **Settings → Environment**, and start the preview. A new preview starts with an empty database: sign up there, or load the demo accounts by pointing the demo script at the preview's address:
+
+```bash
+NIRMANA_URL=https://your-preview-address jac run scripts/seed_demo.jac
+```
+
+### Things to know about Jac 0.34
+
+- The website's client keeps the answers of server calls for a minute. Nirmana clears that store before every page load and every action, so what you see is always current.
+- Numbers typed into forms reach the server as text, and a value the caller leaves out arrives as text too. The server turns them back into numbers before using them.
+- The web client needs the `@tanstack/react-form` package, which is listed in `jac.toml`.
 
 ### Running the checks
 
