@@ -2,9 +2,15 @@
 # Jac 0.34's client caches server-call results for 60s and doesn't invalidate them after our writes,
 # so every load and action below starts with __jacClearCache() to show fresh data.
 import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn, __jacClearCache }
-sv import from ..api.access { create_profile, get_me }
-sv import from ..api.projects { list_projects, create_project }
+sv import from ..api.endpoints { create_profile, get_me, list_projects, create_project }
 import from .ProjectView { ProjectView }
+
+"""Endpoints answer {"error": ...} instead of failing (see api/endpoints.jac); raise it here
+so the page shows the server's message."""
+def unwrap(out: any) -> any {
+    if out and out["error"] { raise Exception(str(out["error"])); }
+    return out;
+}
 
 def errText(e: any) -> str {
     msg = str(e);
@@ -45,11 +51,11 @@ def:pub App() -> JsxElement {
         me: any = None;
         rows: any = None;
         try {
-            me = await get_me();
+            me = unwrap(await get_me());
             if me and me["email"] {
                 profile = me as dict;
                 hasProfile = True;
-                rows = await list_projects();
+                rows = unwrap(await list_projects());
                 projects = (rows as list[dict]) if rows else [];
             } else {
                 hasProfile = False;
@@ -108,7 +114,7 @@ def:pub App() -> JsxElement {
             name = formName;
             role = formRole;
             phone = formPhone;
-            created = await create_profile(name, email, role, phone);
+            created = unwrap(await create_profile(name, email, role, phone));
             await refresh();
         } except Exception as e { notice = errText(e); }
         busy = False;
@@ -124,7 +130,7 @@ def:pub App() -> JsxElement {
             email = formEmail.strip().lower();
             role = formRole;
             phone = formPhone;
-            created = await create_profile(name, email, role, phone);
+            created = unwrap(await create_profile(name, email, role, phone));
             await refresh();
         } except Exception as e { notice = errText(e); }
     }
@@ -146,7 +152,7 @@ def:pub App() -> JsxElement {
             my_role = pRole;
             advance_limit_pct = float(pAdvance) if pAdvance != "" else 10.0;
             retention_pct = float(pRetention) if pRetention != "" else 5.0;
-            created = await create_project(name, location, district, building_type, floor_area_sqft, contract_sum, start_date, handover_date, my_role, advance_limit_pct, retention_pct);
+            created = unwrap(await create_project(name, location, district, building_type, floor_area_sqft, contract_sum, start_date, handover_date, my_role, advance_limit_pct, retention_pct));
             showNew = False;
             pName = "";
             await refresh();

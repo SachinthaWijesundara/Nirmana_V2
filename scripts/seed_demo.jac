@@ -51,7 +51,10 @@ def call(token: str, name: str, args: dict[str, any]) -> any {
     data = payload(res);
     if "error" in data { raise RuntimeError(f"{name} failed: {data['error']}"); }
     if "result" not in data { raise RuntimeError(f"{name} failed: {res}"); }
-    return data["result"];
+    result = data["result"];
+    # endpoints report a refused action as {"error": ...} (see api/endpoints.jac)
+    if isinstance(result, dict) and "error" in result { raise RuntimeError(f"{name} failed: {result['error']}"); }
+    return result;
 }
 
 def resolve(value: any, saved: dict[str, str]) -> any {

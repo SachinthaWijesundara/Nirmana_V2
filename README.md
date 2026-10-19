@@ -137,6 +137,7 @@ NIRMANA_URL=https://your-preview-address jac run scripts/seed_demo.jac
 - The website's client keeps the answers of server calls for a minute. Nirmana clears that store before every page load and every action, so what you see is always current.
 - Numbers typed into forms reach the server as text, and a value the caller leaves out arrives as text too. The server turns them back into numbers before using them.
 - The web client needs the `@tanstack/react-form` package, which is listed in `jac.toml`.
+- When a request fails, Jac 0.34 throws away everything that request touched, and that can include saved records. So Nirmana's endpoints never fail outright: they check everything before saving anything, and report a refused action as a normal reply with an error message, which the website shows.
 
 ### Running the checks
 
@@ -166,7 +167,7 @@ Site photo ─────────► Photo proof ─ verified ────�
 | Folder / file | Contents |
 |---|---|
 | `ui/` | The website, written in Jac: sign-in and projects (`App.cl.jac`), the project page (`ProjectView.cl.jac`) and its styles |
-| `api/` | Accounts and role checks (`access.jac`), and everything the website calls (`projects.jac`) |
+| `api/` | The public API the website calls (`endpoints.jac`), accounts and role checks (`access.jac`), and the project logic (`projects.jac`) |
 | `agents/` | The helpers: `intake.jac`, `payment.jac`, `photo.jac`, `delay.jac`, `forecast.jac`, `scenario.jac`, `qa.jac` |
 | `twin.jac` | The house model: projects, people, parts of the house, payments, updates and the activity record |
 | `main.jac` | Starts the website and the API together |

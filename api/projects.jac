@@ -148,13 +148,17 @@ def add_element(
     require(find_element(ctx.house, name) is None, f"{name} already exists on this project.");
     require(planned_cost >= 0.0, "planned_cost cannot be negative.");
     require(planned_start <= planned_end, "planned_start must be on or before planned_end.");
-    el = Element(name=name.strip(), kind=kind, floor=floor, planned_cost=planned_cost, planned_start=planned_start, planned_end=planned_end, qty=qty, unit=unit, material_shares=shares);
-    ctx.house +>:Has():+> el;
-    grant(el, level=WritePerm);
+    dep_nodes: list[Element] = [];
     for dep_name in deps {
         dep = find_element(ctx.house, dep_name);
         require(dep is not None, f"Unknown element {dep_name} in prerequisites.");
-        el +>:depends_on():+> (dep as Element);
+        dep_nodes.append(dep as Element);
+    }
+    el = Element(name=name.strip(), kind=kind, floor=floor, planned_cost=planned_cost, planned_start=planned_start, planned_end=planned_end, qty=qty, unit=unit, material_shares=shares);
+    ctx.house +>:Has():+> el;
+    grant(el, level=WritePerm);
+    for dep_node in dep_nodes {
+        el +>:depends_on():+> dep_node;
     }
     log(ctx, "element_added", f"{ctx.me.name} added {el.name} to the plan.", "project");
     return element_row(el, today_iso());
@@ -184,13 +188,16 @@ def record_payment(project_id: str, amount: float, date: str = "", note: str = "
     amount = num(amount);
     ctx = access(project_id, ["client"]);
     require(amount > 0.0, "amount must be positive.");
+    target: Element | None = None;
+    if element_name != "" {
+        target = find_element(ctx.house, element_name);
+        require(target is not None, f"Unknown element {element_name}.");
+    }
     pay = Payment(amount=amount, status=PaymentStatus.PAID, note=note, date=date if date != "" else today_iso(), recorded_by=ctx.me.name);
     ctx.house +>:Has():+> pay;
     grant(pay, level=WritePerm);
-    if element_name != "" {
-        el = find_element(ctx.house, element_name);
-        require(el is not None, f"Unknown element {element_name}.");
-        pay +>:paid_by():+> (el as Element);
+    if target is not None {
+        pay +>:paid_by():+> (target as Element);
     }
     log(ctx, "payment_recorded", f"{ctx.me.name} recorded a payment of Rs. {amount:,.0f}.", "money");
     return {"amount": pay.amount, "status": pay.status.value, "date": pay.date, "note": pay.note};
@@ -251,9 +258,9 @@ def report_progress(project_id: str, element_name: str, percent: float, on_date:
     el = found as Element;
     day = on_date if on_date != "" else today_iso();
     require(actual_cost >= 0.0, "actual_cost cannot be negative.");
+    require(started_on == "" or started_on <= day, "started_on must be on or before on_date.");
     if percent > el.percent_complete { el.percent_complete = percent; }
     el.actual_cost += actual_cost;
-    require(started_on == "" or started_on <= day, "started_on must be on or before on_date.");
     if el.actual_start == "" and el.percent_complete > 0.0 { el.actual_start = started_on if started_on != "" else day; }
     if el.percent_complete >= 100.0 and el.actual_end == "" { el.actual_end = day; }
     log(ctx, "progress_reported", f"{ctx.me.name} reported {el.name} at {el.percent_complete}%.", "progress");
@@ -333,7 +340,15 @@ def submit_photo_proof(project_id: str, element_name: str, image: str, note: str
         log(ctx, "photo_proof", f"{ctx.me.name} sent a photo of {el.name} (waiting for review).", "progress");
         return result;
     }
-    check: PhotoCheck = check_photo(Image(image), el.name, el.kind, el.percent_complete);
+    check: PhotoCheck | None = None;
+    try {
+        check = check_photo(Image(image), el.name, el.kind, el.percent_complete);
+    } except Exception as e {
+        result["message"] = "Photo saved, but the AI check failed (" + str(e) + "). The architect can verify it instead.";
+        log(ctx, "photo_proof", f"{ctx.me.name} sent a photo of {el.name}; the AI check failed, waiting for review.", "progress");
+        return result;
+    }
+    check = check as PhotoCheck;
     proven = proven_percent(check, el.percent_complete, MIN_PHOTO_CONFIDENCE);
     result["checked"] = True;
     result["shows_element"] = check.shows_element;
@@ -345,7 +360,8 @@ def submit_photo_proof(project_id: str, element_name: str, image: str, note: str
         release = res.reports[0] as dict[str, any];
         result["released"] = release["released"];
         result["verified_pct"] = el.verified_pct;
-        result["message"] = f"Photo accepted as proof: {el.name} verified at {proven}%. {release['message']}";
+        release_msg = str(release["message"]);
+        result["message"] = "Photo accepted as proof: " + el.name + " verified at " + str(proven) + "%. " + release_msg;
     } else {
         result["message"] = "The photo was not accepted as new proof. " + check.observations;
     }

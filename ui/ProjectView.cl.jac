@@ -3,10 +3,17 @@ Actions are shown only to the role allowed to take them; the server checks the r
 # Jac 0.34's client caches server-call results for 60s and doesn't invalidate them after our writes,
 # so every load and action below starts with __jacClearCache() to show fresh data.
 import from "@jac/runtime" { __jacClearCache }
-sv import from ..api.projects {
+sv import from ..api.endpoints {
     get_project, get_activity, invite_member, add_element, record_payment,
     send_builder_message, report_progress, request_payment, verify_progress,
     submit_photo_proof, run_delay_check, get_forecast, run_scenario, ask_project
+}
+
+"""Endpoints answer {"error": ...} instead of failing (see api/endpoints.jac); raise it here
+so the page shows the server's message."""
+def unwrap(out: any) -> any {
+    if out and out["error"] { raise Exception(str(out["error"])); }
+    return out;
 }
 
 def rs(v: any) -> str {
@@ -77,7 +84,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
         data: any = None;
         try {
             project_id = projectId;
-            data = await get_project(project_id);
+            data = unwrap(await get_project(project_id));
             project = data as dict;
             loaded = True;
         } except Exception as e { notice = str(e); }
@@ -108,7 +115,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
         try {
             project_id = projectId;
             message = msgText;
-            out = await send_builder_message(project_id, message);
+            out = unwrap(await send_builder_message(project_id, message));
             if out["ok"] {
                 result = "Intake: " + str(out["element"]) + " is now " + str(out["percent_complete"]) + "% (cost so far " + rs(out["actual_cost"]) + ")" + ((", delay: " + str(out["delay_reason"])) if out["delay_reason"] else "");
                 msgText = "";
@@ -131,7 +138,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
             kind = elKind;
             floor = elFloor;
             prerequisites = [x.strip() for x in elPrereq.split(",") if x.strip() != ""];
-            out = await add_element(project_id, name, planned_cost, planned_start, planned_end, kind, floor, prerequisites);
+            out = unwrap(await add_element(project_id, name, planned_cost, planned_start, planned_end, kind, floor, prerequisites));
             result = "Added " + str(out["name"]) + " to the plan.";
             elName = "";
             await load();
@@ -149,7 +156,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
             date = payDate;
             note = payNote;
             element_name = payElement;
-            out = await record_payment(project_id, amount, date, note, element_name);
+            out = unwrap(await record_payment(project_id, amount, date, note, element_name));
             result = "Recorded a payment of " + rs(out["amount"]) + ".";
             await load();
         } except Exception as e { notice = str(e); }
@@ -167,7 +174,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
             on_date = "";
             started_on = "";
             actual_cost = float(progCost) if progCost != "" else 0.0;
-            out = await report_progress(project_id, element_name, percent, on_date, started_on, actual_cost);
+            out = unwrap(await report_progress(project_id, element_name, percent, on_date, started_on, actual_cost));
             result = str(out["name"]) + " reported at " + str(out["percent_complete"]) + "%.";
             await load();
         } except Exception as e { notice = str(e); }
@@ -182,7 +189,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
             project_id = projectId;
             amount = float(reqAmount) if reqAmount != "" else 0.0;
             note = reqNote;
-            out = await request_payment(project_id, amount, note);
+            out = unwrap(await request_payment(project_id, amount, note));
             result = "Payment Guard: " + str(out["message"]);
             await load();
         } except Exception as e { notice = str(e); }
@@ -198,7 +205,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
             element_name = verElement;
             verified_percent = float(verPercent) if verPercent != "" else 0.0;
             note = "";
-            out = await verify_progress(project_id, element_name, verified_percent, note);
+            out = unwrap(await verify_progress(project_id, element_name, verified_percent, note));
             result = str(out["message"]) if out["ok"] else ("Could not verify: " + str(out["reason"]));
             await load();
         } except Exception as e { notice = str(e); }
@@ -223,11 +230,13 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
             element_name = photoElement;
             image = photoData;
             note = photoNote;
-            out = await submit_photo_proof(project_id, element_name, image, note);
-            result = str(out["message"]);
+            out = unwrap(await submit_photo_proof(project_id, element_name, image, note));
+            # build the text locally: reading `result` back here would give its old value
+            message = str(out["message"]);
             if out["checked"] {
-                result = result + " (AI: shows element " + str(out["shows_element"]) + ", about " + str(out["estimated_percent"]) + "% done, confidence " + str(out["confidence"]) + ")";
+                message = message + " (AI: shows element " + str(out["shows_element"]) + ", about " + str(out["estimated_percent"]) + "% done, confidence " + str(out["confidence"]) + ")";
             }
+            result = message;
             await load();
         } except Exception as e { notice = str(e); result = ""; }
     }
@@ -242,7 +251,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
             email = invEmail;
             role = invRole;
             name = invName;
-            out = await invite_member(project_id, email, role, name);
+            out = unwrap(await invite_member(project_id, email, role, name));
             result = "Invited " + str(out["email"]) + " as " + str(out["role"]) + ". They see this project after they sign up with that email.";
             invEmail = "";
             invName = "";
@@ -258,7 +267,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
         try {
             project_id = projectId;
             today = "";
-            out = await get_forecast(project_id, today);
+            out = unwrap(await get_forecast(project_id, today));
             forecastData = out as dict;
         } except Exception as e { notice = str(e); }
     }
@@ -274,7 +283,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
             delay_days = int(scDays) if scDays != "" else 0;
             delay_element = scElement;
             today = "";
-            out = await run_scenario(project_id, cement_pct, delay_days, delay_element, today);
+            out = unwrap(await run_scenario(project_id, cement_pct, delay_days, delay_element, today));
             scenarioData = out as dict;
         } except Exception as e { notice = str(e); }
     }
@@ -287,7 +296,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
         try {
             project_id = projectId;
             today = "";
-            out = await run_delay_check(project_id, today);
+            out = unwrap(await run_delay_check(project_id, today));
             delays = (out as list[dict]) if out else [];
             result = str(len(delays)) + " new delay notice(s) written.";
             await load();
@@ -302,7 +311,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
         try {
             project_id = projectId;
             language = askLang;
-            out = await ask_project(project_id, question, language);
+            out = unwrap(await ask_project(project_id, question, language));
             answer = out as dict;
         } except Exception as e { notice = str(e); }
     }
@@ -314,7 +323,7 @@ def:pub ProjectView(projectId: str, onBack: Callable[[], None]) -> JsxElement {
         try {
             project_id = projectId;
             category = "";
-            out = await get_activity(project_id, category);
+            out = unwrap(await get_activity(project_id, category));
             activity = (out as list[dict]) if out else [];
         } except Exception as e { notice = str(e); }
     }
