@@ -73,9 +73,23 @@ Each project page has these tabs:
 
 The website has a dark, minimal look and works on phones as well as laptops. Each person only sees the projects they belong to. Nothing in the app is pre-filled: projects, plans, payments and progress are all entered through the website (or the API) and stored in the project's database.
 
+## How to use it
+
+A first project, step by step:
+
+1. **Sign up.** Open the website, choose **Sign up**, and enter your email, a password, your name and your usual role. You land on **Your projects**.
+2. **Create a project (client).** Click **+ New project** and fill in the name, location, contract sum, start and handover dates, and your role on it. The **advance limit** (default 10%) is how far payments may run ahead of verified work before Payment Guard holds money. **Retention** (default 5%) is kept back until handover.
+3. **Invite your team (client).** Open the project, go to **Team** and invite the contractor and the architect by email. Each of them must sign up **with that same email**. The project then appears in their list, with their role on it.
+4. **Plan the build (client or architect).** In **Plan**, add each part of the house with its cost and dates, and list what must finish first (for example, *Walls* after *Slab*). Record any payments already made.
+5. **Report from site (contractor).** In **Actions**, send updates in your own words (*"slab eka 60% wage karala, cement 45k gaththa"*), report progress, and request payments. In **Photo**, send photos of finished work.
+6. **Verify (architect).** In **Actions**, verify how much of each part is really done. Verified work releases any money Payment Guard was holding.
+7. **Follow along (everyone).** **Overview** shows money and progress, **Forecast** shows the finish date and lets you try "what if", **Ask** answers questions about the house, and **Activity** shows who did what.
+
+If an action isn't allowed, or something is missing (for example, an element name that doesn't exist), the page shows the reason and nothing is changed.
+
 ## Current status
 
-This is a hackathon prototype (AI Hackathon 2026, Jaseci). It runs on **Jac 0.34.23**. The accounts, the website and all seven helpers above work and are tested, including with a real AI model, and a full run with a client, a contractor and an architect working on the same project passes on a real Jac 0.34 server: every action by every role shows up for the others. Not built yet: live material prices, payment milestones with architect sign-off, receipts and the ledger, change orders, plan drawings, messages, and the estimator from the full design. See [`BACKEND.md`](BACKEND.md) for the technical details, and [`plan.md`](plan.md) and [`PLAN-P2.md`](PLAN-P2.md) for the original plans.
+This is a hackathon prototype (AI Hackathon 2026, Jaseci). It runs on **Jac 0.34.23**. The accounts, the website and all seven helpers above work and are tested, including with a real AI model, and a full end-to-end run passes on a real Jac 0.34 server: a client, a contractor and an architect each used every feature through the website and the API (228 checks), with and without an AI model. Not built yet: live material prices, payment milestones with architect sign-off, receipts and the ledger, change orders, plan drawings, messages, and the estimator from the full design. See [`BACKEND.md`](BACKEND.md) for the technical details, and [`plan.md`](plan.md) and [`PLAN-P2.md`](PLAN-P2.md) for the original plans.
 
 ## Try it
 
@@ -122,6 +136,13 @@ export GROQ_API_KEY=your-key-here     # Windows PowerShell: $env:GROQ_API_KEY = 
 jac start main.jac
 ```
 
+| Setting | What it does |
+|---|---|
+| `GROQ_API_KEY` | Turns on the AI. Reading messages and answering questions use `openai/gpt-oss-120b`; checking photos uses `qwen/qwen3.8-27b` (both on Groq). |
+| `GEDARA_MODEL` | Optional: a different text model (any [LiteLLM](https://docs.litellm.ai/docs/providers) model name, with that provider's key set). |
+| `GEDARA_VISION_MODEL` | Optional: a different model for checking photos. It must accept images. |
+| `GEDARA_LLM=mock` | Uses a built-in practice AI with fixed answers (for tests; no key needed). |
+
 On JacHammer, add `GROQ_API_KEY` under **Settings → Environment** instead. **Never paste a key into a file or commit it**; the project's checks will reject it. Without a key, Nirmana still works: messages and questions are handled by simpler built-in rules, and photos are kept for the architect to review by hand.
 
 ### Running it on JacHammer
@@ -131,6 +152,31 @@ Open the project in JacHammer, add `GROQ_API_KEY` under **Settings → Environme
 ```bash
 NIRMANA_URL=https://your-preview-address jac run scripts/seed_demo.jac
 ```
+
+- To deploy, go to **Ship → Preview** and click **Start preview**. You get a public link that works for **7 days**; start the preview again to get a fresh one. Redeploying keeps the data already entered.
+- **Production** (a permanent address with your own subdomain) needs a JacHammer Builder or Pro plan; deploy it from **Ship → Production**.
+- Without JacHammer, any Linux server with Jac 0.34.23 works: run `jac start main.jac -p 8000` behind a web server, and set `GROQ_API_KEY` in its environment.
+
+### Using the API
+
+Everything the website does is also an API: sign in with `POST /user/register` and `POST /user/login`, then call `POST /function/<name>` with the token. For example:
+
+```bash
+curl -X POST http://localhost:8000/function/list_projects   -H "Authorization: Bearer <token>" -H "Content-Type: application/json" -d '{}'
+```
+
+A refused call replies `{"error": "..."}`. [`BACKEND.md`](BACKEND.md) lists every endpoint, who may call it, and what it does.
+
+### If something goes wrong
+
+| Problem | What to do |
+|---|---|
+| The page stays blank on the first start | The website is still being built; wait a minute and refresh. |
+| `jac start` says the port is in use | Start it on another port: `jac start main.jac -p 8001`. |
+| You see **Finish your profile** | Fill it in once; it links your account to your name and role. |
+| An invited person can't see the project | They must sign up with exactly the email they were invited with. |
+| Answers say "Answered from the graph" (not by AI), or photos wait for review | No AI key is set; add `GROQ_API_KEY` and restart. |
+| You want to start again with an empty database | Stop the website and delete the `.jac/data` folder. |
 
 ### Things to know about Jac 0.34
 
@@ -150,7 +196,7 @@ jac test tests/delay_tests.jac
 jac test tests/forecast_tests.jac
 ```
 
-`GEDARA_LLM=mock` uses a built-in practice AI, so no account or key is needed. If everything is working you'll see `Passed successfully.` after each one.
+`GEDARA_LLM=mock` uses a built-in practice AI, so no account or key is needed. If everything is working you'll see `Passed successfully.` after each one. To type-check a file, run `jac check <file>`, for example `jac check main.jac`.
 
 ## How the pieces fit
 
